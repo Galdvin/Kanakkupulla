@@ -16,6 +16,7 @@ from core.user_service import UserService
 from core.financial_utils import format_inr, format_date
 from config.constants import ExpenseKind
 from ui.expenses.expense_dialog import ExpenseEntryDialog
+from ui.expenses.receipt_scanner_dialog import SmartReceiptDialog
 
 class ExpensesView(QWidget):
     def __init__(self, expense_kind: str = ExpenseKind.DAILY.value, parent=None):
@@ -40,6 +41,10 @@ class ExpensesView(QWidget):
         title_box.addWidget(sub)
         header.addLayout(title_box)
         header.addStretch()
+
+        scan_btn = QPushButton("📷 Scan Bill / Receipt")
+        scan_btn.clicked.connect(self.open_scan_dialog)
+        header.addWidget(scan_btn)
 
         self.add_btn = QPushButton(f"+ Add {title.text()}")
         self.add_btn.setProperty("class", "PrimaryBtn")
@@ -157,6 +162,11 @@ class ExpensesView(QWidget):
             self.table.setItem(row, col, amt_item)
 
         self.total_lbl.setText(f"Total: {format_inr(total_paise)}")
+
+    def open_scan_dialog(self):
+        dlg = SmartReceiptDialog(parent=self)
+        if dlg.exec():
+            self.load_expenses()
 
     def open_add_dialog(self):
         dlg = ExpenseEntryDialog(expense_kind=self.expense_kind, parent=self)

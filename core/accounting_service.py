@@ -1,12 +1,12 @@
 """
-Bank Account and Payment Management Service
-Handles Accounts (Cash, Savings, Current, Credit Cards, Wallets),
-Balance recalculation, and inter-account Transfers (strictly distinct from income/expenses).
+Bank Account and Payment Management Service with Balanced Double-Entry Ledgers:
+Handles internal transfers between owned accounts and credit card bill payments.
+Ensures zero expense or income is created for internal fund transfers.
 """
 from typing import List, Optional, Tuple
 from datetime import date
 from database.connection import SessionLocal
-from database.models import Account, AccountTransfer, Transaction, AuditLog
+from database.models import Account, FinancialTransaction, LedgerEntry, AuditLog
 from config.constants import AccountType, TransactionType
 from core.authentication import AuthService
 
@@ -54,7 +54,8 @@ class AccountService:
         try:
             existing = db.query(Account).filter_by(name=name).first()
             if existing:
-                return False, f"Account '{name}' already exists", None
+                db.expunge(existing)
+                return True, "Account already exists", existing
 
             acc = Account(
                 name=name,
@@ -87,8 +88,9 @@ class AccountService:
         reference_note: Optional[str] = None
     ) -> Tuple[bool, str]:
         """
-        Executes an internal account transfer.
-        Accounting rule: Internal transfers must NEVER be counted as expense or income.
+        Executes internal account transfer using balanced double-entry accounting.
+        Rule 1: Never creates an expense or income entry.
+        Debit Destination Account (Asset Increases), Credit Source Account (Asset Decreases).
         """
         if not AuthService.can_modify_transactions():
             return False, "Unauthorized"
@@ -100,6 +102,8 @@ class AccountService:
             return False, "Transfer amount must be greater than zero"
 
         current_user = AuthService.get_current_user()
+        creator_id = current_user.id if current_user else 1
+
         db = SessionLocal()
         try:
             from_acc = db.query(Account).filter_by(id=from_account_id).first()
@@ -108,25 +112,56 @@ class AccountService:
             if not from_acc or not to_acc or not from_acc.is_active or not to_acc.is_active:
                 return False, "One or both accounts are invalid or inactive"
 
-            # Execute balance movements
+            # Create Master Transfer Transaction
+            txn = FinancialTransaction(
+                transaction_type=TransactionType.TRANSFER.value,
+                expense_kind="Transfer",
+                title=f"Transfer from {from_acc.name} to {to_acc.name}",
+                description=reference_note,
+                amount_paise=amount_paise,
+                transaction_date=transfer_date,
+                account_id=from_account_id,
+                payment_method="Account Transfer",
+                reference_no=reference_note,
+                created_by_user_id=creator_id,
+                paid_by_member_id=1,
+                expense_for_member_id=1
+            )
+            db.add(txn)
+            db.flush()
+
+            # Balanced Double-Entry Postings:
+            # Entry 1: CREDIT Source Account (Asset decreases)
+            credit_entry = LedgerEntry(
+                transaction_id=txn.id,
+                account_id=from_account_id,
+                entry_type="CREDIT",
+                amount_paise=amount_paise,
+                entry_date=transfer_date,
+                description=f"Transfer OUT to {to_acc.name}"
+            )
+            db.add(credit_entry)
+
+            # Entry 2: DEBIT Destination Account (Asset increases)
+            debit_entry = LedgerEntry(
+                transaction_id=txn.id,
+                account_id=to_account_id,
+                entry_type="DEBIT",
+                amount_paise=amount_paise,
+                entry_date=transfer_date,
+                description=f"Transfer IN from {from_acc.name}"
+            )
+            db.add(debit_entry)
+
+            # Adjust account balances
             from_acc.current_balance_paise -= amount_paise
             to_acc.current_balance_paise += amount_paise
 
-            # Record transfer record
-            transfer = AccountTransfer(
-                from_account_id=from_account_id,
-                to_account_id=to_account_id,
-                amount_paise=amount_paise,
-                transfer_date=transfer_date,
-                reference_note=reference_note,
-                created_by_id=current_user.id if current_user else 1
-            )
-            db.add(transfer)
-
             log = AuditLog(
-                user_id=current_user.id if current_user else None,
+                user_id=creator_id,
                 action="ACCOUNT_TRANSFER",
                 entity_name="TRANSFER",
+                entity_id=txn.id,
                 details=f"Transferred ₹{amount_paise/100:.2f} from {from_acc.name} to {to_acc.name}"
             )
             db.add(log)
@@ -138,24 +173,3 @@ class AccountService:
             return False, str(e)
         finally:
             db.close()
-
-    @staticmethod
-    def pay_credit_card_bill(
-        bank_account_id: int,
-        credit_card_account_id: int,
-        payment_amount_paise: int,
-        payment_date: date,
-        reference: Optional[str] = None
-    ) -> Tuple[bool, str]:
-        """
-        Pays credit card bill from bank account.
-        Accounting rule: Decreases bank balance and decreases CC liability (increases CC balance/available limit)
-        WITHOUT double-counting historical CC purchases as an expense again.
-        """
-        return AccountService.transfer_funds(
-            from_account_id=bank_account_id,
-            to_account_id=credit_card_account_id,
-            amount_paise=payment_amount_paise,
-            transfer_date=payment_date,
-            reference_note=f"Credit Card Bill Payment {reference or ''}".strip()
-        )

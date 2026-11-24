@@ -15,11 +15,6 @@ from core.user_service import UserService
 from core.financial_utils import inr_to_paise, paise_to_inr, format_inr, format_date, parse_date
 from config.constants import UserRole
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_db():
-    seed_database()
-    yield
-
 def test_financial_utils_conversion():
     assert inr_to_paise(100) == 10000
     assert inr_to_paise("1250.50") == 125050

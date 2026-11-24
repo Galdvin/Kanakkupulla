@@ -14,10 +14,14 @@ from PySide6.QtGui import QIcon, QFont
 
 from assets.styles.theme import DARK_THEME, LIGHT_THEME
 from core.authentication import AuthService
+from ui.dashboard.dashboard_view import DashboardView
 from ui.users.users_view import UsersView
 from ui.expenses.expenses_view import ExpensesView
 from ui.income.income_view import IncomeView
 from ui.accounts.accounts_view import AccountsView
+from ui.analytics.net_worth_view import NetWorthView
+from ui.analytics.heatmap_view import HeatmapView
+from ui.analytics.subscription_view import SubscriptionView
 from config.constants import ExpenseKind
 
 class MainWindow(QMainWindow):
@@ -96,15 +100,15 @@ class MainWindow(QMainWindow):
             ("Other Expenses", 2),
             ("Income", 3),
             ("Accounts & Cards", 4),
-            ("Budgets", 5),
-            ("Savings Goals", 6),
-            ("Investments", 7),
-            ("Loans & EMIs", 8),
-            ("Financial Planning", 9),
-            ("Calendar", 10),
-            ("Reports & Analytics", 11),
-            ("Users & Family", 12),
-            ("Settings", 13),
+            ("Net Worth Tracker", 5),
+            ("Spending Heatmap", 6),
+            ("Subscriptions", 7),
+            ("Budgets", 8),
+            ("Savings Goals", 9),
+            ("Investments", 10),
+            ("Loans & EMIs", 11),
+            ("Reports & Analytics", 12),
+            ("Users & Family", 13),
         ]
 
         for text, page_idx in nav_items:
@@ -161,9 +165,9 @@ class MainWindow(QMainWindow):
         return top_bar
 
     def init_pages(self):
-        # 0: Dashboard (placeholder container for Phase 4)
-        self.dashboard_placeholder = self._create_placeholder_page("Main Dashboard & Real-Time KPIs")
-        self.stack.addWidget(self.dashboard_placeholder)
+        # 0: Dashboard
+        self.dashboard_view = DashboardView()
+        self.stack.addWidget(self.dashboard_view)
 
         # 1: Daily Expenses
         self.daily_expenses_view = ExpensesView(expense_kind=ExpenseKind.DAILY.value)
@@ -180,6 +184,18 @@ class MainWindow(QMainWindow):
         # 4: Accounts
         self.accounts_view = AccountsView()
         self.stack.addWidget(self.accounts_view)
+
+        # 5: Net Worth Tracker
+        self.net_worth_view = NetWorthView()
+        self.stack.addWidget(self.net_worth_view)
+
+        # 6: Spending Heatmap
+        self.heatmap_view = HeatmapView()
+        self.stack.addWidget(self.heatmap_view)
+
+        # 7: Subscriptions
+        self.subscription_view = SubscriptionView()
+        self.stack.addWidget(self.subscription_view)
 
         # 5: Budgets
         self.budgets_placeholder = self._create_placeholder_page("Category & Overall Budget Planning")

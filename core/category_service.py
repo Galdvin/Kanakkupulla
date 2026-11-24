@@ -43,7 +43,8 @@ class CategoryService:
         try:
             existing = db.query(Category).filter_by(name=name).first()
             if existing:
-                return False, f"Category '{name}' already exists", None
+                db.expunge(existing)
+                return True, "Category already exists", existing
 
             cat = Category(name=name, color=color, icon=icon, is_active=True)
             db.add(cat)

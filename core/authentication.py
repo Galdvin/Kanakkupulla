@@ -1,18 +1,35 @@
 """
-Authentication and Session Security Service
+Authentication and Session Security Service using Argon2id
 """
-from typing import Optional
+from typing import Optional, Tuple
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, VerificationError
 from database.connection import SessionLocal
-from database.models import User, AuditLog
-from database.seed import hash_password, verify_password
-from config.constants import UserRole
+from database.models import User, AuditLog, FamilyProfile, FamilyMember
+
+ph = PasswordHasher(time_cost=2, memory_cost=65536, parallelism=2)
+
+def hash_password(password: str) -> str:
+    """Hashes a password using Argon2id algorithm"""
+    return ph.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verifies a plain password against an Argon2id hash with backwards compatibility"""
+    try:
+        return ph.verify(hashed_password, plain_password)
+    except (VerifyMismatchError, VerificationError):
+        # Fallback for existing bcrypt hashes if any
+        try:
+            import bcrypt
+            return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+        except Exception:
+            return False
 
 class AuthService:
     _current_user: Optional[User] = None
 
     @classmethod
-    def login(cls, username: str, password: str, ip: str = "localhost") -> tuple[bool, str, Optional[User]]:
-        """Authenticates user with username & password"""
+    def login(cls, username: str, password: str, ip: str = "localhost") -> Tuple[bool, str, Optional[User]]:
         db = SessionLocal()
         try:
             user = db.query(User).filter_by(username=username).first()
@@ -21,14 +38,13 @@ class AuthService:
                 return False, "Invalid username or password", None
 
             if user.status != "active":
-                cls._log_audit(db, user.id, "LOGIN_BLOCKED", "Inactive/Suspended account", ip)
-                return False, "Account is disabled. Contact Administrator.", None
+                cls._log_audit(db, user.id, "LOGIN_BLOCKED", "Inactive account", ip)
+                return False, "Account is disabled. Contact Family Administrator.", None
 
             if not verify_password(password, user.password_hash):
                 cls._log_audit(db, user.id, "LOGIN_FAILED", "Incorrect password", ip)
                 return False, "Invalid username or password", None
 
-            # Expunge or eager load to keep user object detached safely
             db.expunge(user)
             cls._current_user = user
             cls._log_audit(db, user.id, "LOGIN_SUCCESS", f"User {username} logged in", ip)
@@ -38,7 +54,6 @@ class AuthService:
 
     @classmethod
     def logout(cls):
-        """Logs out the active user"""
         if cls._current_user:
             db = SessionLocal()
             try:
@@ -53,11 +68,11 @@ class AuthService:
 
     @classmethod
     def is_admin(cls) -> bool:
-        return cls._current_user is not None and cls._current_user.role == UserRole.ADMIN.value
+        return cls._current_user is not None and cls._current_user.role in ["Family Administrator", "admin"]
 
     @classmethod
     def can_modify_transactions(cls) -> bool:
-        return cls._current_user is not None and cls._current_user.role in [UserRole.ADMIN.value, UserRole.STANDARD.value]
+        return cls._current_user is not None and cls._current_user.role != "Viewer"
 
     @classmethod
     def _log_audit(cls, db, user_id: Optional[int], action: str, details: str, ip: str = "localhost"):
