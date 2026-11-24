@@ -12,10 +12,12 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QDate
 from core.expense_service import ExpenseService
 from core.category_service import CategoryService
-from core.user_service import UserService
+from core.family_service import FamilyService
+from core.transaction_search_service import TransactionSearchService
 from core.financial_utils import format_inr, format_date
 from config.constants import ExpenseKind
 from ui.expenses.expense_dialog import ExpenseEntryDialog
+from ui.expenses.quick_expense_dialog import QuickExpenseDialog
 from ui.expenses.receipt_scanner_dialog import SmartReceiptDialog
 
 class ExpensesView(QWidget):
@@ -42,6 +44,11 @@ class ExpensesView(QWidget):
         header.addLayout(title_box)
         header.addStretch()
 
+        self.quick_add_btn = QPushButton("⚡ Quick Entry")
+        self.quick_add_btn.setStyleSheet("background-color: #0d9488; font-weight: 700; color: #ffffff; border-radius: 6px; padding: 6px 14px;")
+        self.quick_add_btn.clicked.connect(self.open_quick_dialog)
+        header.addWidget(self.quick_add_btn)
+
         scan_btn = QPushButton("📷 Scan Bill / Receipt")
         scan_btn.clicked.connect(self.open_scan_dialog)
         header.addWidget(scan_btn)
@@ -52,12 +59,18 @@ class ExpensesView(QWidget):
         header.addWidget(self.add_btn)
         layout.addLayout(header)
 
-        # 2. Filter Bar
+        # 2. Filter & Search Bar
         filter_card = QFrame()
         filter_card.setProperty("class", "Card")
         filter_layout = QHBoxLayout(filter_card)
-        filter_layout.setContentsMargins(12, 12, 12, 12)
+        filter_layout.setContentsMargins(12, 10, 12, 10)
         filter_layout.setSpacing(10)
+
+        filter_layout.addWidget(QLabel("Search:"))
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Search title, shop, ref...")
+        self.search_input.textChanged.connect(self.load_expenses)
+        filter_layout.addWidget(self.search_input)
 
         filter_layout.addWidget(QLabel("Category:"))
         self.cat_filter = QComboBox()
@@ -70,8 +83,8 @@ class ExpensesView(QWidget):
         filter_layout.addWidget(QLabel("Paid By:"))
         self.user_filter = QComboBox()
         self.user_filter.addItem("All Members", None)
-        for u in UserService.get_active_users():
-            self.user_filter.addItem(u.full_name, u.id)
+        for m in FamilyService.get_all_members():
+            self.user_filter.addItem(f"{m.name} ({m.relation_type})", m.id)
         self.user_filter.currentIndexChanged.connect(self.load_expenses)
         filter_layout.addWidget(self.user_filter)
 
@@ -85,7 +98,7 @@ class ExpensesView(QWidget):
 
         # 3. Expenses Table
         self.table = QTableWidget()
-        headers = ["ID", "Date", "Title", "Category", "Paid By", "Expense For", "Account / Mode", "Amount"]
+        headers = ["ID", "Date", "Title", "Category", "Paid By", "Expense For", "Account / Mode", "Attachments", "Amount"]
         if self.expense_kind == ExpenseKind.OCCASIONAL.value:
             headers.insert(3, "Event / Occasion")
 
@@ -111,20 +124,21 @@ class ExpensesView(QWidget):
 
     def load_expenses(self):
         cat_id = self.cat_filter.currentData()
-        user_id = self.user_filter.currentData()
+        member_id = self.user_filter.currentData()
+        kw = self.search_input.text().strip() if hasattr(self, "search_input") else None
 
-        expenses, count = ExpenseService.get_expenses(
+        expenses, count, total_paise = TransactionSearchService.search_transactions(
+            keyword=kw,
             category_id=cat_id,
-            paid_by_id=user_id,
+            paid_by_member_id=member_id,
             expense_kind=self.expense_kind,
-            limit=200
+            transaction_type="Expense",
+            limit=250
         )
 
         self.table.setRowCount(len(expenses))
-        total_paise = 0
 
         for row, txn in enumerate(expenses):
-            total_paise += txn.amount_paise
             col = 0
             
             # ID
@@ -147,14 +161,19 @@ class ExpensesView(QWidget):
             self.table.setItem(row, col, QTableWidgetItem(cat_name)); col += 1
 
             # Paid By
-            self.table.setItem(row, col, QTableWidgetItem(txn.paid_by.full_name if txn.paid_by else "-")); col += 1
+            self.table.setItem(row, col, QTableWidgetItem(txn.paid_by_member.name if txn.paid_by_member else "-")); col += 1
 
             # Expense For
-            self.table.setItem(row, col, QTableWidgetItem(txn.expense_for.full_name if txn.expense_for else "-")); col += 1
+            self.table.setItem(row, col, QTableWidgetItem(txn.expense_for_member.name if txn.expense_for_member else "-")); col += 1
 
             # Account / Mode
             acc_info = f"{txn.account.name if txn.account else ''} ({txn.payment_method})"
             self.table.setItem(row, col, QTableWidgetItem(acc_info)); col += 1
+
+            # Attachments
+            att_count = len(txn.attachments)
+            att_str = f"📎 {att_count}" if att_count > 0 else "-"
+            self.table.setItem(row, col, QTableWidgetItem(att_str)); col += 1
 
             # Amount
             amt_item = QTableWidgetItem(format_inr(txn.amount_paise))
@@ -162,6 +181,11 @@ class ExpensesView(QWidget):
             self.table.setItem(row, col, amt_item)
 
         self.total_lbl.setText(f"Total: {format_inr(total_paise)}")
+
+    def open_quick_dialog(self):
+        dlg = QuickExpenseDialog(parent=self)
+        if dlg.exec():
+            self.load_expenses()
 
     def open_scan_dialog(self):
         dlg = SmartReceiptDialog(parent=self)

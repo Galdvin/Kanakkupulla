@@ -4,7 +4,7 @@ Allows dynamic addition, editing, disabling, and fetching of expense categories.
 """
 from typing import List, Optional, Tuple
 from database.connection import SessionLocal
-from database.models import Category, Subcategory, Transaction, AuditLog
+from database.models import Category, Subcategory, FinancialTransaction, AuditLog
 from core.authentication import AuthService
 
 class CategoryService:

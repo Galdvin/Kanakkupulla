@@ -36,7 +36,7 @@ class FamilyService:
             db.close()
 
     @staticmethod
-    def add_family_member(name: str, relationship: str = "Member", create_login: bool = False, username: Optional[str] = None, password: Optional[str] = None, role: str = "Family Member") -> Tuple[bool, str, Optional[FamilyMember]]:
+    def add_family_member(name: str, relation_type: str = "Member", create_login: bool = False, username: Optional[str] = None, password: Optional[str] = None, role: str = "Family Member") -> Tuple[bool, str, Optional[FamilyMember]]:
         name = name.strip()
         if not name:
             return False, "Member name is required", None
@@ -72,7 +72,7 @@ class FamilyService:
             member = FamilyMember(
                 family_id=fam.id,
                 name=name,
-                relationship=relationship,
+                relation_type=relation_type,
                 user_id=user_id,
                 is_active=True
             )

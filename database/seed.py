@@ -6,7 +6,7 @@ Uses Argon2id password hashing.
 from datetime import datetime, date
 from database.connection import Base, engine, SessionLocal
 from database.models import FamilyProfile, FamilyMember, User, Category, Subcategory, Account, ApplicationSetting
-from core.authentication import hash_password
+from core.authentication import hash_password, verify_password
 from config.constants import AccountType, DEFAULT_CATEGORIES
 from config.settings import DEFAULT_CURRENCY, DEFAULT_DATE_FORMAT
 
@@ -41,7 +41,7 @@ def seed_database():
             admin_member = FamilyMember(
                 family_id=fam.id,
                 name="Family Head",
-                relationship="Primary",
+                relation_type="Primary",
                 user_id=admin_user.id,
                 is_active=True
             )

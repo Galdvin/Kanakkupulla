@@ -209,6 +209,7 @@ class Budget(Base):
     family_member_id = Column(Integer, ForeignKey("family_members.id"), nullable=True) # Shared or individual budget
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    family_member = relationship("FamilyMember")
     category_budgets = relationship("BudgetCategory", back_populates="budget", cascade="all, delete-orphan")
 
 class BudgetCategory(Base):
@@ -238,6 +239,7 @@ class SavingsGoal(Base):
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    family_member = relationship("FamilyMember")
     contributions = relationship("SavingsContribution", back_populates="goal", cascade="all, delete-orphan")
 
 class SavingsContribution(Base):
@@ -270,6 +272,8 @@ class Investment(Base):
     last_valuation_date = Column(Date, default=date.today)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    family_member = relationship("FamilyMember")
+
 class Loan(Base):
     __tablename__ = "loans"
 
@@ -288,6 +292,7 @@ class Loan(Base):
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    family_member = relationship("FamilyMember")
     payments = relationship("LoanPayment", back_populates="loan", cascade="all, delete-orphan")
 
 class LoanPayment(Base):
@@ -322,6 +327,10 @@ class RecurringRule(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    category = relationship("Category")
+    account = relationship("Account")
+    paid_by_member = relationship("FamilyMember")
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
@@ -340,3 +349,7 @@ class ApplicationSetting(Base):
     key = Column(String(100), primary_key=True)
     value = Column(Text, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# Backward-compatibility alias
+Transaction = FinancialTransaction
+

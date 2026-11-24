@@ -12,16 +12,25 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QFont
 
-from assets.styles.theme import DARK_THEME, LIGHT_THEME
+from assets.styles.fintech_theme import FINTECH_DARK_THEME
+from assets.styles.theme import LIGHT_THEME
 from core.authentication import AuthService
-from ui.dashboard.dashboard_view import DashboardView
+from ui.dashboard.master_dashboard_view import MasterFamilyDashboardView
 from ui.users.users_view import UsersView
 from ui.expenses.expenses_view import ExpensesView
 from ui.income.income_view import IncomeView
 from ui.accounts.accounts_view import AccountsView
+from ui.accounts.general_ledger_view import GeneralLedgerView
 from ui.analytics.net_worth_view import NetWorthView
 from ui.analytics.heatmap_view import HeatmapView
 from ui.analytics.subscription_view import SubscriptionView
+from ui.budgets.budgets_view import BudgetsView
+from ui.savings.savings_view import SavingsView
+from ui.investments.investments_view import InvestmentsView
+from ui.loans.loans_view import LoansView
+from ui.recurring.recurring_view import RecurringView
+from ui.calendar.calendar_view import CalendarView
+from ui.planning.financial_planning_view import FinancialPlanningView
 from config.constants import ExpenseKind
 
 class MainWindow(QMainWindow):
@@ -32,7 +41,7 @@ class MainWindow(QMainWindow):
         self.resize(1280, 800)
         self.setMinimumSize(1024, 680)
         self.is_dark_mode = True
-        self.setStyleSheet(DARK_THEME)
+        self.setStyleSheet(FINTECH_DARK_THEME)
 
         self.init_ui()
 
@@ -100,15 +109,19 @@ class MainWindow(QMainWindow):
             ("Other Expenses", 2),
             ("Income", 3),
             ("Accounts & Cards", 4),
-            ("Net Worth Tracker", 5),
-            ("Spending Heatmap", 6),
-            ("Subscriptions", 7),
-            ("Budgets", 8),
-            ("Savings Goals", 9),
-            ("Investments", 10),
-            ("Loans & EMIs", 11),
-            ("Reports & Analytics", 12),
-            ("Users & Family", 13),
+            ("General Ledger", 5),
+            ("Net Worth Tracker", 6),
+            ("Spending Heatmap", 7),
+            ("Subscriptions", 8),
+            ("Budgets", 9),
+            ("Savings Goals", 10),
+            ("Investments", 11),
+            ("Loans & EMIs", 12),
+            ("Recurring Rules", 13),
+            ("Financial Calendar", 14),
+            ("Financial Planning", 15),
+            ("Reports & Analytics", 16),
+            ("Users & Family", 17),
         ]
 
         for text, page_idx in nav_items:
@@ -165,8 +178,8 @@ class MainWindow(QMainWindow):
         return top_bar
 
     def init_pages(self):
-        # 0: Dashboard
-        self.dashboard_view = DashboardView()
+        # 0: Master Dashboard (Family and Individual Viewing Modes)
+        self.dashboard_view = MasterFamilyDashboardView()
         self.stack.addWidget(self.dashboard_view)
 
         # 1: Daily Expenses
@@ -185,7 +198,11 @@ class MainWindow(QMainWindow):
         self.accounts_view = AccountsView()
         self.stack.addWidget(self.accounts_view)
 
-        # 5: Net Worth Tracker
+        # 5: General Ledger
+        self.general_ledger_view = GeneralLedgerView()
+        self.stack.addWidget(self.general_ledger_view)
+
+        # 6: Net Worth Tracker
         self.net_worth_view = NetWorthView()
         self.stack.addWidget(self.net_worth_view)
 
@@ -193,39 +210,43 @@ class MainWindow(QMainWindow):
         self.heatmap_view = HeatmapView()
         self.stack.addWidget(self.heatmap_view)
 
-        # 7: Subscriptions
+        # 8: Subscriptions
         self.subscription_view = SubscriptionView()
         self.stack.addWidget(self.subscription_view)
 
-        # 5: Budgets
-        self.budgets_placeholder = self._create_placeholder_page("Category & Overall Budget Planning")
-        self.stack.addWidget(self.budgets_placeholder)
+        # 9: Budgets
+        self.budgets_view = BudgetsView()
+        self.stack.addWidget(self.budgets_view)
 
-        # 6: Savings
-        self.savings_placeholder = self._create_placeholder_page("Savings Goals & Contributions")
-        self.stack.addWidget(self.savings_placeholder)
+        # 10: Savings
+        self.savings_view = SavingsView()
+        self.stack.addWidget(self.savings_view)
 
-        # 7: Investments
-        self.investments_placeholder = self._create_placeholder_page("Investment Portfolio & Growth")
-        self.stack.addWidget(self.investments_placeholder)
+        # 11: Investments
+        self.investments_view = InvestmentsView()
+        self.stack.addWidget(self.investments_view)
 
-        # 8: Loans & EMIs
-        self.loans_placeholder = self._create_placeholder_page("Loans, Outstanding & EMI Tracking")
-        self.stack.addWidget(self.loans_placeholder)
+        # 12: Loans & EMIs
+        self.loans_view = LoansView()
+        self.stack.addWidget(self.loans_view)
 
-        # 9: Financial Planning
-        self.planning_placeholder = self._create_placeholder_page("Financial Projection Engine")
-        self.stack.addWidget(self.planning_placeholder)
+        # 13: Recurring Rules
+        self.recurring_view = RecurringView()
+        self.stack.addWidget(self.recurring_view)
 
-        # 10: Calendar
-        self.calendar_placeholder = self._create_placeholder_page("Financial Calendar View")
-        self.stack.addWidget(self.calendar_placeholder)
+        # 14: Financial Calendar
+        self.calendar_view = CalendarView()
+        self.stack.addWidget(self.calendar_view)
 
-        # 11: Reports & Analytics
+        # 15: Financial Planning
+        self.planning_view = FinancialPlanningView()
+        self.stack.addWidget(self.planning_view)
+
+        # 16: Reports & Analytics
         self.reports_placeholder = self._create_placeholder_page("Comprehensive Reports & Analytics")
         self.stack.addWidget(self.reports_placeholder)
 
-        # 12: Users & Family
+        # 17: Users & Family
         self.users_view = UsersView()
         self.stack.addWidget(self.users_view)
 
@@ -246,9 +267,10 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndex(idx)
         titles = [
             "Dashboard", "Daily Expenses", "Other Expenses", "Income",
-            "Accounts & Cards", "Budgets", "Savings Goals", "Investments",
-            "Loans & EMIs", "Financial Planning", "Calendar", "Reports & Analytics",
-            "Users & Family", "Settings"
+            "Accounts & Cards", "General Ledger", "Net Worth Tracker",
+            "Spending Heatmap", "Subscriptions", "Budgets", "Savings Goals",
+            "Investments", "Loans & EMIs", "Recurring Rules", "Financial Calendar",
+            "Financial Planning", "Reports & Analytics", "Users & Family"
         ]
         if idx < len(titles):
             self.page_title.setText(titles[idx])
@@ -256,7 +278,7 @@ class MainWindow(QMainWindow):
     def toggle_theme(self):
         self.is_dark_mode = not self.is_dark_mode
         if self.is_dark_mode:
-            self.setStyleSheet(DARK_THEME)
+            self.setStyleSheet(FINTECH_DARK_THEME)
         else:
             self.setStyleSheet(LIGHT_THEME)
 

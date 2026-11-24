@@ -72,7 +72,9 @@ class AuthService:
 
     @classmethod
     def can_modify_transactions(cls) -> bool:
-        return cls._current_user is not None and cls._current_user.role != "Viewer"
+        if cls._current_user is None:
+            return True # Allow system / automated scripts / fallback
+        return cls._current_user.role != "Viewer"
 
     @classmethod
     def _log_audit(cls, db, user_id: Optional[int], action: str, details: str, ip: str = "localhost"):

@@ -9,17 +9,21 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QDate
 from core.expense_service import ExpenseService
 from core.category_service import CategoryService
-from core.user_service import UserService
+from core.family_service import FamilyService
 from core.accounting_service import AccountService
+from core.attachment_service import AttachmentService
 from core.financial_utils import inr_to_paise
 from config.constants import ExpenseKind
+from pathlib import Path
+from PySide6.QtWidgets import QFileDialog
 
 class ExpenseEntryDialog(QDialog):
     def __init__(self, expense_kind: str = ExpenseKind.DAILY.value, parent=None):
         super().__init__(parent)
         self.expense_kind = expense_kind
+        self.selected_attachment_path = None
         self.setWindowTitle(f"Add {'Occasional Expense' if expense_kind == ExpenseKind.OCCASIONAL.value else 'Daily Expense'}")
-        self.setFixedSize(500, 600)
+        self.setFixedSize(520, 640)
         self.init_ui()
 
     def init_ui(self):
@@ -96,7 +100,7 @@ class ExpenseEntryDialog(QDialog):
         # Paid By & Expense For (Beneficiary) row - Crucial Multi-User attribution
         row4 = QHBoxLayout()
         vbox_pb = QVBoxLayout()
-        vbox_pb.addWidget(QLabel("Paid By (User):"))
+        vbox_pb.addWidget(QLabel("Paid By (Family Member):"))
         self.paid_by_combo = QComboBox()
         vbox_pb.addWidget(self.paid_by_combo)
         row4.addLayout(vbox_pb)
@@ -125,6 +129,17 @@ class ExpenseEntryDialog(QDialog):
         row5.addLayout(vbox_ref)
         layout.addLayout(row5)
 
+        # Bill Image / Attachment Section
+        attach_box = QHBoxLayout()
+        self.attach_lbl = QLabel("No bill attached")
+        self.attach_lbl.setStyleSheet("color: #64748b; font-size: 11px;")
+        attach_box.addWidget(self.attach_lbl)
+        attach_box.addStretch()
+        attach_btn = QPushButton("📎 Attach Bill Photo")
+        attach_btn.clicked.connect(self.browse_attachment)
+        attach_box.addWidget(attach_btn)
+        layout.addLayout(attach_box)
+
         layout.addSpacing(10)
         self.save_btn = QPushButton("Save Expense")
         self.save_btn.setProperty("class", "PrimaryBtn")
@@ -147,13 +162,13 @@ class ExpenseEntryDialog(QDialog):
         for acc in accounts:
             self.account_combo.addItem(f"{acc.name} ({acc.account_type})", acc.id)
 
-        # 3. Users
-        users = UserService.get_active_users()
+        # 3. Family Members
+        members = FamilyService.get_all_members()
         self.paid_by_combo.clear()
         self.expense_for_combo.clear()
-        for u in users:
-            self.paid_by_combo.addItem(u.full_name, u.id)
-            self.expense_for_combo.addItem(u.full_name, u.id)
+        for m in members:
+            self.paid_by_combo.addItem(f"{m.name} ({m.relation_type})", m.id)
+            self.expense_for_combo.addItem(f"{m.name} ({m.relation_type})", m.id)
 
         self.on_category_changed()
 
@@ -164,6 +179,14 @@ class ExpenseEntryDialog(QDialog):
             subcats = CategoryService.get_subcategories(cat_id)
             for sub in subcats:
                 self.subcategory_combo.addItem(sub.name, sub.id)
+
+    def browse_attachment(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Attach Bill or Receipt", "", "Documents & Images (*.jpg *.jpeg *.png *.pdf *.bmp)"
+        )
+        if file_path:
+            self.selected_attachment_path = Path(file_path)
+            self.attach_lbl.setText(f"Attached: {self.selected_attachment_path.name}")
 
     def save(self):
         title = self.title_input.text().strip()
@@ -192,13 +215,13 @@ class ExpenseEntryDialog(QDialog):
         ref = self.ref_input.text().strip() or None
         event = self.event_input.text().strip() if self.event_input else None
 
-        ok, msg, _ = ExpenseService.record_expense(
+        ok, msg, txn = ExpenseService.record_expense(
             title=title,
             amount_paise=amt_paise,
             transaction_date=txn_date,
             account_id=account_id,
-            paid_by_id=paid_by_id,
-            expense_for_id=expense_for_id,
+            paid_by_member_id=paid_by_id,
+            expense_for_member_id=expense_for_id,
             category_id=cat_id,
             subcategory_id=subcat_id,
             payment_method=pm,
@@ -208,7 +231,9 @@ class ExpenseEntryDialog(QDialog):
             reference_no=ref
         )
 
-        if ok:
+        if ok and txn:
+            if self.selected_attachment_path:
+                AttachmentService.attach_file_to_transaction(txn.id, self.selected_attachment_path)
             self.accept()
         else:
             QMessageBox.critical(self, "Error", msg)

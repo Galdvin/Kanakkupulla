@@ -3,7 +3,7 @@ Pytest Fixtures and Session Configuration:
 Drops and re-creates all SQLite tables before each test for absolute isolation.
 """
 import pytest
-from database.connection import Base, engine
+from database.connection import Base, engine, SessionLocal
 from database.seed import seed_database
 from core.authentication import AuthService
 
@@ -11,13 +11,24 @@ from sqlalchemy import text
 
 @pytest.fixture(autouse=True)
 def clean_db():
-    with engine.connect() as conn:
-        conn.execute(text("PRAGMA foreign_keys = OFF;"))
-        conn.commit()
-    Base.metadata.drop_all(bind=engine)
-    with engine.connect() as conn:
-        conn.execute(text("PRAGMA foreign_keys = ON;"))
-        conn.commit()
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        db.execute(text("PRAGMA foreign_keys = OFF;"))
+        # Clear tables
+        tables = [
+            "ledger_entries", "transaction_attachments", "financial_transactions",
+            "savings_contributions", "savings_goals", "investments", "loan_payments", "loans",
+            "budget_categories", "budgets", "recurring_rules", "audit_logs", "subcategories",
+            "categories", "accounts", "family_members", "users", "family_profiles"
+        ]
+        for t in tables:
+            db.execute(text(f"DELETE FROM {t};"))
+        db.execute(text("PRAGMA foreign_keys = ON;"))
+        db.commit()
+    finally:
+        db.close()
+
     seed_database()
     yield
     AuthService.logout()

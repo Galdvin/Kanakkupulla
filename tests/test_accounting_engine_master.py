@@ -25,11 +25,7 @@ from config.constants import AccountType, ExpenseKind
 
 @pytest.fixture(autouse=True)
 def clean_database():
-    Base.metadata.drop_all(bind=engine)
-    seed_database()
-    AuthService.login("admin", "admin123")
-    yield
-    AuthService.logout()
+    pass # Managed safely by conftest.py
 
 def test_argon2_password_hashing():
     pwd = "SecureFamilyPassword2026"
@@ -73,8 +69,8 @@ def test_balanced_double_entry_ledger_invariant():
 def test_payer_vs_beneficiary_attribution():
     """Father pays ₹5,000 for Child's Education -> both payer and beneficiary reports update"""
     # Create Father and Child members
-    _, _, father = FamilyService.add_family_member("Father Profile", relationship="Parent")
-    _, _, child = FamilyService.add_family_member("Child Profile", relationship="Child")
+    _, _, father = FamilyService.add_family_member("Father Profile", relation_type="Parent")
+    _, _, child = FamilyService.add_family_member("Child Profile", relation_type="Child")
     acc = AccountService.get_all_accounts()[0]
 
     school_fee = 500000 # ₹5,000.00
