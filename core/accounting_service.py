@@ -85,13 +85,15 @@ class AccountService:
         to_account_id: int,
         amount_paise: int,
         transfer_date: date,
-        reference_note: Optional[str] = None
+        reference_note: Optional[str] = None,
+        notes: Optional[str] = None
     ) -> Tuple[bool, str]:
         """
         Executes internal account transfer using balanced double-entry accounting.
         Rule 1: Never creates an expense or income entry.
         Debit Destination Account (Asset Increases), Credit Source Account (Asset Decreases).
         """
+        reference_note = reference_note or notes
         if not AuthService.can_modify_transactions():
             return False, "Unauthorized"
 
@@ -173,3 +175,30 @@ class AccountService:
             return False, str(e)
         finally:
             db.close()
+
+    # Convenience aliases
+    record_transfer = transfer_funds
+
+    @staticmethod
+    def pay_credit_card_bill(
+        from_account_id: int,
+        card_account_id: int,
+        amount_paise: int,
+        payment_date: date,
+        reference: Optional[str] = None
+    ) -> Tuple[bool, str]:
+        from core.accounting_service_engine import AccountingEngineService
+        ok, msg, _ = AccountingEngineService.process_credit_card_bill_payment(
+            bank_account_id=from_account_id,
+            credit_card_account_id=card_account_id,
+            payment_amount_paise=amount_paise,
+            payment_date=payment_date,
+            reference_no=reference
+        )
+        return ok, msg
+
+
+# Module export aliases
+AccountingService = AccountService
+__all__ = ["AccountService", "AccountingService"]
+

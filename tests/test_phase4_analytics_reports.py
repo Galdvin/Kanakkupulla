@@ -25,7 +25,7 @@ def test_dashboard_metrics_aggregation():
     assert "total_income_paise" in metrics
     assert "total_expense_paise" in metrics
     assert "total_savings_paise" in metrics
-    assert "current_balance_paise" in metrics
+    assert "available_bank_balance_paise" in metrics
     assert isinstance(metrics["category_distribution"], list)
     assert isinstance(metrics["user_distribution"], list)
 

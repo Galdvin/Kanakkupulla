@@ -37,14 +37,10 @@ def test_category_and_subcategory_creation():
     assert any(s.name == "Vet Clinic" for s in subcats)
 
 def test_record_expense_with_multiuser_attribution():
-    # 1. Setup users
-    users = UserService.get_all_users()
-    admin_user = users[0]
-    
-    # Create child/beneficiary user if needed
-    _, _, child_user = UserService.create_user("child_phase2", "Child Member", "pass123")
-    if not child_user:
-        child_user = [u for u in UserService.get_all_users() if u.username == "child_phase2"][0]
+    from core.family_service import FamilyService
+    members = FamilyService.get_all_members()
+    admin_member = members[0]
+    beneficiary_member = members[1] if len(members) > 1 else admin_member
 
     # Create test bank account
     _, _, acc = AccountService.create_account("Test Bank Phase2", AccountType.SAVINGS.value, opening_balance_paise=1000000) # ₹10,000
@@ -56,14 +52,14 @@ def test_record_expense_with_multiuser_attribution():
         amount_paise=expense_amt,
         transaction_date=date.today(),
         account_id=acc.id,
-        paid_by_id=admin_user.id,
-        expense_for_id=child_user.id,
+        paid_by_member_id=admin_member.id,
+        expense_for_member_id=beneficiary_member.id,
         expense_kind=ExpenseKind.DAILY.value,
         payment_method="UPI"
     )
     assert ok is True
-    assert txn.paid_by_id == admin_user.id
-    assert txn.expense_for_id == child_user.id
+    assert txn.paid_by_member_id == admin_member.id
+    assert txn.expense_for_member_id == beneficiary_member.id
 
     # Verify balance deducted from bank account
     updated_acc = AccountService.get_account_by_id(acc.id)
@@ -76,8 +72,9 @@ def test_record_expense_with_multiuser_attribution():
     assert restored_acc.current_balance_paise == 1000000
 
 def test_income_recording():
+    from core.family_service import FamilyService
     _, _, acc = AccountService.create_account("Salary Bank Acc", AccountType.SAVINGS.value, opening_balance_paise=500000) # ₹5,000
-    admin_user = UserService.get_all_users()[0]
+    member = FamilyService.get_all_members()[0]
 
     income_amt = 7500000 # ₹75,000.00
     ok, msg, inc = IncomeService.record_income(
@@ -85,7 +82,7 @@ def test_income_recording():
         amount_paise=income_amt,
         income_date=date.today(),
         account_id=acc.id,
-        received_by_id=admin_user.id,
+        received_by_member_id=member.id,
         payment_mode="Bank Transfer"
     )
     assert ok is True

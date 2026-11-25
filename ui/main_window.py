@@ -31,6 +31,8 @@ from ui.loans.loans_view import LoansView
 from ui.recurring.recurring_view import RecurringView
 from ui.calendar.calendar_view import CalendarView
 from ui.planning.financial_planning_view import FinancialPlanningView
+from ui.reports.reports_view import ReportsView
+from ui.settings.settings_view import SettingsView
 from config.constants import ExpenseKind
 
 class MainWindow(QMainWindow):
@@ -122,6 +124,7 @@ class MainWindow(QMainWindow):
             ("Financial Planning", 15),
             ("Reports & Analytics", 16),
             ("Users & Family", 17),
+            ("Settings & Backup", 18),
         ]
 
         for text, page_idx in nav_items:
@@ -243,16 +246,16 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.planning_view)
 
         # 16: Reports & Analytics
-        self.reports_placeholder = self._create_placeholder_page("Comprehensive Reports & Analytics")
-        self.stack.addWidget(self.reports_placeholder)
+        self.reports_view = ReportsView()
+        self.stack.addWidget(self.reports_view)
 
         # 17: Users & Family
         self.users_view = UsersView()
         self.stack.addWidget(self.users_view)
 
-        # 13: Settings
-        self.settings_placeholder = self._create_placeholder_page("Application Settings & Backups")
-        self.stack.addWidget(self.settings_placeholder)
+        # 18: Settings & Backup
+        self.settings_view = SettingsView()
+        self.stack.addWidget(self.settings_view)
 
     def _create_placeholder_page(self, title_text: str) -> QWidget:
         widget = QWidget()
@@ -270,7 +273,7 @@ class MainWindow(QMainWindow):
             "Accounts & Cards", "General Ledger", "Net Worth Tracker",
             "Spending Heatmap", "Subscriptions", "Budgets", "Savings Goals",
             "Investments", "Loans & EMIs", "Recurring Rules", "Financial Calendar",
-            "Financial Planning", "Reports & Analytics", "Users & Family"
+            "Financial Planning", "Reports & Analytics", "Users & Family", "Settings & Backup"
         ]
         if idx < len(titles):
             self.page_title.setText(titles[idx])

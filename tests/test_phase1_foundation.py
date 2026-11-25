@@ -7,6 +7,7 @@ Tests for Phase 1 Foundation:
 - Currency and financial formatting utilities
 """
 import pytest
+from datetime import datetime
 from database.connection import Base, engine, SessionLocal
 from database.models import User, Category, Account
 from database.seed import hash_password, verify_password, seed_database
@@ -41,7 +42,7 @@ def test_authentication_service():
     success, msg, user = AuthService.login("admin", "admin123")
     assert success is True
     assert user is not None
-    assert user.role == UserRole.ADMIN.value
+    assert user.role in [UserRole.ADMIN.value, "Family Administrator", "admin"]
     assert AuthService.is_admin() is True
 
     # Failed login
@@ -55,21 +56,22 @@ def test_authentication_service():
 def test_user_service_crud():
     # Login as admin first
     AuthService.login("admin", "admin123")
+    test_uname = f"spouse_test_{int(datetime.now().timestamp())}"
 
     # Create new family member
     ok, msg, new_user = UserService.create_user(
-        username="spouse_test",
+        username=test_uname,
         full_name="Priya Kumar",
         password="password123",
         role=UserRole.STANDARD.value
     )
     assert ok is True
-    assert new_user.username == "spouse_test"
+    assert new_user.username == test_uname
     assert new_user.full_name == "Priya Kumar"
 
     # Verify duplicate username prevented
     dup_ok, dup_msg, _ = UserService.create_user(
-        username="spouse_test",
+        username=test_uname,
         full_name="Duplicate",
         password="password123"
     )

@@ -40,9 +40,10 @@ def test_budget_service():
     assert status["is_exceeded"] is False
 
 def test_savings_service():
-    user = UserService.get_all_users()[0]
+    from core.family_service import FamilyService
+    member = FamilyService.get_all_members()[0]
     ok, msg, goal = SavingsService.create_goal(
-        user_id=user.id,
+        family_member_id=member.id,
         goal_name="Emergency Contingency Fund",
         target_amount_paise=20000000, # ₹2,00,000
         start_date=date.today(),
@@ -65,9 +66,10 @@ def test_savings_service():
     assert saved_goal.current_amount_paise == 2500000
 
 def test_investment_service():
-    user = UserService.get_all_users()[0]
+    from core.family_service import FamilyService
+    member = FamilyService.get_all_members()[0]
     ok, msg, inv = InvestmentService.add_investment(
-        user_id=user.id,
+        family_member_id=member.id,
         investment_name="Nifty 50 Index Fund",
         investment_type="Mutual Funds",
         invested_amount_paise=5000000, # ₹50,000

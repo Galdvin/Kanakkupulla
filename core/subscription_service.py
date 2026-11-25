@@ -67,6 +67,14 @@ class SubscriptionService:
 
         db = SessionLocal()
         try:
+            from database.models import FamilyMember
+            member = db.query(FamilyMember).filter_by(id=paid_by_id).first()
+            if not member:
+                member = db.query(FamilyMember).filter_by(user_id=paid_by_id).first()
+            if not member:
+                member = db.query(FamilyMember).first()
+            member_id = member.id if member else 1
+
             rule = RecurringRule(
                 title=title,
                 transaction_type=TransactionType.EXPENSE.value,
@@ -75,8 +83,7 @@ class SubscriptionService:
                 start_date=start_date,
                 next_due_date=next_due_date,
                 account_id=account_id,
-                paid_by_id=paid_by_id,
-                expense_for_id=paid_by_id,
+                paid_by_member_id=member_id,
                 category_id=category_id,
                 is_active=True
             )

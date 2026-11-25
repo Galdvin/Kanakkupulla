@@ -32,4 +32,4 @@ def test_database_backup_and_listing():
 
     backups = BackupService.list_backups()
     assert len(backups) >= 1
-    assert any(b.name == path.name for b in backups)
+    assert any(b["filename"] == path.name for b in backups)

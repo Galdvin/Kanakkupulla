@@ -125,6 +125,8 @@ class AnalyticsService:
                 "total_savings_paise": total_savings_paise,
                 "savings_rate_pct": round(savings_rate_pct, 1),
                 "liquid_balance_paise": liquid_balance_paise,
+                "available_bank_balance_paise": liquid_balance_paise,
+                "current_balance_paise": liquid_balance_paise,
                 "total_budget_paise": total_budget_paise,
                 "budget_remaining_paise": budget_remaining_paise,
                 "budget_utilization_pct": round(budget_utilization_pct, 1),

@@ -37,7 +37,7 @@ class UserService:
     @staticmethod
     def create_user(username: str, full_name: str, password: str, role: str = UserRole.STANDARD.value, profile_photo: Optional[str] = None) -> Tuple[bool, str, Optional[User]]:
         current = AuthService.get_current_user()
-        if current and current.role != UserRole.ADMIN.value:
+        if current and not AuthService.is_admin():
             return False, "Only Administrators can create new users", None
 
         username = username.strip().lower()
@@ -58,7 +58,6 @@ class UserService:
                 full_name=full_name.strip(),
                 password_hash=hash_password(password),
                 role=role,
-                profile_photo=profile_photo,
                 status="active"
             )
             db.add(new_user)
@@ -87,7 +86,7 @@ class UserService:
     @staticmethod
     def update_user(user_id: int, full_name: str, role: str, status: str, new_password: Optional[str] = None) -> Tuple[bool, str]:
         current = AuthService.get_current_user()
-        if current and current.role != UserRole.ADMIN.value and current.id != user_id:
+        if current and not AuthService.is_admin() and current.id != user_id:
             return False, "Unauthorized to update this user"
 
         db = SessionLocal()
@@ -97,13 +96,13 @@ class UserService:
                 return False, "User not found"
 
             # Prevent removing the last active admin
-            if user.role == UserRole.ADMIN.value and (role != UserRole.ADMIN.value or status != "active"):
-                admin_count = db.query(User).filter(User.role == UserRole.ADMIN.value, User.status == "active", User.id != user_id).count()
+            if user.role in [UserRole.ADMIN.value, "Family Administrator"] and (role not in [UserRole.ADMIN.value, "Family Administrator"] or status != "active"):
+                admin_count = db.query(User).filter(User.role.in_([UserRole.ADMIN.value, "Family Administrator"]), User.status == "active", User.id != user_id).count()
                 if admin_count == 0:
                     return False, "Cannot deactivate or demote the sole active Administrator"
 
             user.full_name = full_name.strip()
-            if current and current.role == UserRole.ADMIN.value:
+            if current and AuthService.is_admin():
                 user.role = role
                 user.status = status
 
