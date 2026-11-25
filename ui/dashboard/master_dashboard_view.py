@@ -42,7 +42,7 @@ class MasterFamilyDashboardView(QWidget):
         title_box = QVBoxLayout()
         title = QLabel("Family Financial Intelligence")
         title.setStyleSheet("font-size: 20px; font-weight: 800; color: #14b8a6;")
-        sub = QLabel("Consolidated family net worth, cash flow, and member financial positions")
+        sub = QLabel("Family net worth, cash flow & member financial positions")
         sub.setStyleSheet("color: #94a3b8; font-size: 13px;")
         title_box.addWidget(title)
         title_box.addWidget(sub)

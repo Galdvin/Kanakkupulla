@@ -28,8 +28,10 @@ def main():
         logger.error("Failed to initialize database: %s", str(e), exc_info=True)
 
     # 2. Launch Qt Application
-    app = QApplication(sys.argv)
+    app = QApplication.instance() or QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
+    from core.theme_manager import apply_app_theme, DARK
+    apply_app_theme(DARK)
 
     # 3. Present Login Dialog
     login_dialog = LoginDialog()

@@ -21,31 +21,51 @@ QFrame#Sidebar {
     border-right: 1px solid #334155;
 }
 
+QScrollArea#NavScrollArea {
+    background-color: transparent;
+    border: none;
+}
+
+QWidget#NavScrollContent {
+    background-color: transparent;
+}
+
 QLabel#LogoText {
     font-size: 18px;
     font-weight: 700;
     color: #38bdf8;
-    padding: 10px 5px;
+    padding: 2px;
 }
 
-QPushButton.NavBtn {
+QLabel.NavSectionHeader, QLabel[class="NavSectionHeader"] {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 10px 4px 4px 8px;
+    text-transform: uppercase;
+}
+
+QPushButton.NavBtn, QPushButton[class="NavBtn"] {
     background-color: transparent;
     color: #94a3b8;
     text-align: left;
-    padding: 10px 16px;
+    padding: 6px 14px;
+    min-height: 24px;
+    height: 36px;
     border-radius: 8px;
     font-size: 13px;
     font-weight: 500;
     border: none;
-    margin: 2px 8px;
+    margin: 1px 2px;
 }
 
-QPushButton.NavBtn:hover {
+QPushButton.NavBtn:hover, QPushButton[class="NavBtn"]:hover {
     background-color: #334155;
     color: #ffffff;
 }
 
-QPushButton.NavBtn:checked, QPushButton.NavBtn[active="true"] {
+QPushButton.NavBtn:checked, QPushButton[class="NavBtn"]:checked, QPushButton.NavBtn[active="true"] {
     background-color: #0284c7;
     color: #ffffff;
     font-weight: 600;
@@ -180,31 +200,51 @@ QFrame#Sidebar {
     border-right: 1px solid #e2e8f0;
 }
 
+QScrollArea#NavScrollArea {
+    background-color: transparent;
+    border: none;
+}
+
+QWidget#NavScrollContent {
+    background-color: transparent;
+}
+
 QLabel#LogoText {
     font-size: 18px;
     font-weight: 700;
     color: #0284c7;
-    padding: 10px 5px;
+    padding: 2px;
 }
 
-QPushButton.NavBtn {
+QLabel.NavSectionHeader, QLabel[class="NavSectionHeader"] {
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 10px 4px 4px 8px;
+    text-transform: uppercase;
+}
+
+QPushButton.NavBtn, QPushButton[class="NavBtn"] {
     background-color: transparent;
     color: #64748b;
     text-align: left;
-    padding: 10px 16px;
+    padding: 6px 14px;
+    min-height: 24px;
+    height: 36px;
     border-radius: 8px;
     font-size: 13px;
     font-weight: 500;
     border: none;
-    margin: 2px 8px;
+    margin: 1px 2px;
 }
 
-QPushButton.NavBtn:hover {
+QPushButton.NavBtn:hover, QPushButton[class="NavBtn"]:hover {
     background-color: #f1f5f9;
     color: #0f172a;
 }
 
-QPushButton.NavBtn:checked, QPushButton.NavBtn[active="true"] {
+QPushButton.NavBtn:checked, QPushButton[class="NavBtn"]:checked, QPushButton.NavBtn[active="true"] {
     background-color: #e0f2fe;
     color: #0284c7;
     font-weight: 600;
