@@ -118,13 +118,45 @@ QLineEdit, QComboBox, QDateEdit, QSpinBox, QDoubleSpinBox, QTextEdit {
     color: #f8fafc;
     border: 1px solid #334155;
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 6px 12px;
+    min-height: 24px;
+    font-size: 13px;
     selection-background-color: #0d9488;
 }
 
 QLineEdit:focus, QComboBox:focus, QDateEdit:focus, QTextEdit:focus {
     border: 1px solid #14b8a6;
     background-color: #0a0f1d;
+}
+
+QComboBox {
+    padding: 6px 12px;
+    min-height: 24px;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 28px;
+    border-left: 1px solid #1e293b;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+QComboBox::down-arrow {
+    image: url("assets/icons/chevron_down.svg");
+    width: 10px;
+    height: 10px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #111827;
+    color: #f8fafc;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    selection-background-color: #0f766e;
+    selection-color: #ffffff;
+    padding: 4px;
 }
 
 /* Tables */

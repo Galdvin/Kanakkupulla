@@ -6,7 +6,7 @@ and instant category + account assignment.
 from datetime import date
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, 
-    QComboBox, QPushButton, QMessageBox, QFrame, QButtonGroup
+    QComboBox, QPushButton, QMessageBox, QFrame, QButtonGroup, QWidget
 )
 from PySide6.QtCore import Qt
 from core.expense_service import ExpenseService
@@ -19,61 +19,143 @@ class QuickExpenseDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("⚡ Quick Expense Entry (< 5 sec)")
-        self.setFixedSize(420, 460)
+        self.setFixedSize(460, 530)
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setSpacing(12)
+        layout.setSpacing(10)
         layout.setContentsMargins(24, 20, 24, 20)
 
+        # Header
+        header_wrap = QWidget()
+        header_layout = QVBoxLayout(header_wrap)
+        header_layout.setContentsMargins(0, 0, 0, 4)
+        header_layout.setSpacing(2)
+
+        header_title = QLabel("⚡ Quick Expense Entry")
+        header_title.setStyleSheet("font-size: 16px; font-weight: 800; color: #2dd4bf;")
+        header_layout.addWidget(header_title)
+
+        header_sub = QLabel("Record everyday out-of-pocket transactions instantly")
+        header_sub.setStyleSheet("font-size: 11px; color: #64748b; font-weight: 500;")
+        header_layout.addWidget(header_sub)
+        layout.addWidget(header_wrap)
+
         # Amount Entry with Preset Chips
-        layout.addWidget(QLabel("Amount (₹):"))
+        amt_lbl = QLabel("Amount (₹):")
+        amt_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
+        layout.addWidget(amt_lbl)
+
         self.amount_input = QLineEdit()
         self.amount_input.setPlaceholderText("0.00")
-        self.amount_input.setStyleSheet("font-size: 20px; font-weight: 800; color: #14b8a6;")
+        self.amount_input.setFixedHeight(44)
+        self.amount_input.setStyleSheet("""
+            QLineEdit {
+                font-size: 20px;
+                font-weight: 700;
+                color: #2dd4bf;
+                background-color: #111827;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 4px 12px;
+            }
+            QLineEdit:focus {
+                border: 1px solid #14b8a6;
+                background-color: #0a0f1d;
+            }
+        """)
         layout.addWidget(self.amount_input)
 
+        # Preset amount chips
         chips_layout = QHBoxLayout()
+        chips_layout.setSpacing(6)
         presets = [50, 100, 200, 500, 1000, 2000]
         for p in presets:
             btn = QPushButton(f"₹{p}")
-            btn.setFixedHeight(28)
+            btn.setFixedHeight(30)
+            btn.setCursor(Qt.PointingHandCursor)
+            btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #1e293b;
+                    color: #94a3b8;
+                    border: 1px solid #334155;
+                    border-radius: 6px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    padding: 0 4px;
+                }
+                QPushButton:hover {
+                    background-color: #0f766e;
+                    color: #ffffff;
+                    border-color: #14b8a6;
+                }
+            """)
             btn.clicked.connect(lambda _, val=p: self.set_amount(val))
             chips_layout.addWidget(btn)
         layout.addLayout(chips_layout)
 
         # Title / Description
-        layout.addWidget(QLabel("Title / Merchant:"))
+        title_lbl = QLabel("Title / Merchant:")
+        title_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
+        layout.addWidget(title_lbl)
+
         self.title_input = QLineEdit()
+        self.title_input.setFixedHeight(38)
         self.title_input.setPlaceholderText("e.g. Tea, Fuel, Vegetables, Snacks")
         layout.addWidget(self.title_input)
 
         # Category
-        layout.addWidget(QLabel("Category:"))
+        cat_lbl = QLabel("Category:")
+        cat_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
+        layout.addWidget(cat_lbl)
+
         self.cat_combo = QComboBox()
+        self.cat_combo.setFixedHeight(38)
         for cat in CategoryService.get_all_categories():
             self.cat_combo.addItem(cat.name, cat.id)
         layout.addWidget(self.cat_combo)
 
         # Paid From Account
-        layout.addWidget(QLabel("Paid From Account:"))
+        acc_lbl = QLabel("Paid From Account:")
+        acc_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
+        layout.addWidget(acc_lbl)
+
         self.acc_combo = QComboBox()
+        self.acc_combo.setFixedHeight(38)
         for acc in AccountService.get_all_accounts():
             self.acc_combo.addItem(f"{acc.name} ({acc.account_type})", acc.id)
         layout.addWidget(self.acc_combo)
 
         # Family Member (Payer)
-        layout.addWidget(QLabel("Paid By:"))
+        payer_lbl = QLabel("Paid By:")
+        payer_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
+        layout.addWidget(payer_lbl)
+
         self.payer_combo = QComboBox()
+        self.payer_combo.setFixedHeight(38)
         for m in FamilyService.get_all_members():
             self.payer_combo.addItem(f"{m.name} ({m.relation_type})", m.id)
         layout.addWidget(self.payer_combo)
 
-        layout.addSpacing(10)
+        layout.addSpacing(6)
         save_btn = QPushButton("Save Instantly (Enter)")
-        save_btn.setProperty("class", "PrimaryBtn")
-        save_btn.setFixedHeight(40)
+        save_btn.setFixedHeight(42)
+        save_btn.setCursor(Qt.PointingHandCursor)
+        save_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f766e, stop:1 #14b8a6);
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 13px;
+                border: 1px solid #2dd4bf;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #14b8a6, stop:1 #2dd4bf);
+                color: #0f172a;
+            }
+        """)
         save_btn.clicked.connect(self.save)
         self.amount_input.returnPressed.connect(self.save)
         self.title_input.returnPressed.connect(self.save)
