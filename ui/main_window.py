@@ -48,29 +48,29 @@ QListWidget#SidebarNav {
     background-color: transparent;
     border: none;
     outline: none;
-    padding: 2px 4px;
+    padding: 4px 6px;
 }
 QListWidget#SidebarNav::item {
-    height: 32px;
-    border-radius: 6px;
+    height: 36px;
+    border-radius: 8px;
     padding-left: 10px;
     padding-right: 10px;
-    margin: 1px 4px;
+    margin: 2px 2px;
     color: #94a3b8;
     font-size: 13px;
     font-weight: 500;
     border: none;
 }
 QListWidget#SidebarNav::item:hover {
-    background-color: #1e293b;
+    background-color: rgba(30, 41, 59, 0.7);
     color: #f1f5f9;
 }
 QListWidget#SidebarNav::item:selected {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(15, 118, 110, 0.75), stop:1 rgba(20, 184, 166, 0.25));
-    color: #ffffff;
-    font-weight: 600;
-    border-left: 3px solid #2dd4bf;
-    border-radius: 6px;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(20, 184, 166, 0.22), stop:1 rgba(15, 23, 42, 0.35));
+    color: #2dd4bf;
+    font-weight: 700;
+    border-left: 3px solid #14b8a6;
+    border-radius: 8px;
 }
 QListWidget#SidebarNav QScrollBar:vertical {
     background: transparent;
@@ -292,7 +292,7 @@ class MainWindow(QMainWindow):
             icon_path = NAV_ICONS_DIR / icon_file
             icon = QIcon(str(icon_path)) if icon_path.exists() else QIcon()
             item = QListWidgetItem(icon, title, self.navigation)
-            item.setSizeHint(QSize(240, 32))
+            item.setSizeHint(QSize(240, 36))
             item.setData(Qt.UserRole, page_idx)
             proxy = NavBtnProxy(self, page_idx, item)
             self.nav_btns.append(proxy)
