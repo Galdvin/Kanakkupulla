@@ -41,6 +41,7 @@ from config.constants import ExpenseKind
 
 NAV_ICONS_DIR = Path(__file__).parent.parent / "assets" / "icons" / "nav"
 APP_LOGO_PATH = Path(__file__).parent.parent / "assets" / "icons" / "app_logo.svg"
+APP_ICON_PATH = Path(__file__).parent.parent / "assets" / "icons" / "app_icon.png"
 
 # Palette-driven Navigation Style (Clean modern fintech design)
 NAVIGATION_STYLE = """
@@ -134,6 +135,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Kanakkupulla - Personal Finance & Analytics")
         self.resize(1300, 820)
         self.setMinimumSize(1080, 700)
+        if APP_ICON_PATH.exists():
+            self.setWindowIcon(QIcon(str(APP_ICON_PATH)))
         self.is_dark_mode = True
         
         apply_app_theme(DARK)
@@ -497,6 +500,8 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndex(idx)
         if idx == 0 and hasattr(self, "dashboard_view") and hasattr(self.dashboard_view, "refresh"):
             self.dashboard_view.refresh()
+        elif idx == 6 and hasattr(self, "net_worth_view") and hasattr(self.net_worth_view, "refresh"):
+            self.net_worth_view.refresh()
         titles = [
             "Dashboard", "Daily Expenses", "Other Expenses", "Income Management",
             "Accounts & Cards", "General Ledger", "Net Worth Tracker",

@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from analytics.forecasting import ForecastingEngine
+from ui.table_helper import configure_fintech_table, PLANNING_WIDTHS
 
 class FinancialPlanningView(QWidget):
     def __init__(self, parent=None):
@@ -94,18 +95,9 @@ class FinancialPlanningView(QWidget):
             "Month", "Projected Income", "Fixed Obligations", "Variable Expenses",
             "Total Outflow", "Net Surplus / Savings", "Projected Bank Balance", "Savings Rate"
         ])
-        for i in range(8):
-            self.table.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
-        self.table.setStyleSheet("""
-            QTableWidget {
-                background-color: #1e293b; border: 1px solid #334155;
-                gridline-color: #334155; color: #f8fafc; border-radius: 8px;
-            }
-            QHeaderView::section {
-                background-color: #0f172a; color: #94a3b8; padding: 8px;
-                border: 1px solid #334155; font-weight: 600;
-            }
-        """)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        configure_fintech_table(self.table, stretch_col=5, col_widths=PLANNING_WIDTHS)
         self.layout.addWidget(self.table)
 
         self.load_data()

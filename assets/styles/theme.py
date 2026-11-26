@@ -132,21 +132,52 @@ QComboBox::down-arrow {
 
 /* Tables */
 QTableWidget, QTableView {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 8px;
-    gridline-color: #334155;
-    selection-background-color: #0369a1;
+    background-color: #090e1a;
+    alternate-background-color: #0e1526;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    gridline-color: rgba(30, 41, 59, 0.7);
+    selection-background-color: rgba(20, 184, 166, 0.22);
     selection-color: #ffffff;
 }
 
-QHeaderView::section {
-    background-color: #0f172a;
-    color: #94a3b8;
-    padding: 8px;
-    font-weight: 600;
+QHeaderView {
+    background-color: #0c1424;
     border: none;
-    border-bottom: 2px solid #334155;
+    border-top-left-radius: 9px;
+    border-top-right-radius: 9px;
+}
+
+QHeaderView::section {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #1b2840, 
+        stop:0.45 #121c2e, 
+        stop:1 #0b1322);
+    color: #93c5fd;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 2px solid #14b8a6;
+    text-transform: uppercase;
+}
+
+QHeaderView::section:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #233656, 
+        stop:0.45 #19273f, 
+        stop:1 #101c30);
+    color: #38bdf8;
+    border-bottom: 2px solid #2dd4bf;
+}
+
+QTableCornerButton::section {
+    background: #121c2e;
+    border: none;
+    border-bottom: 2px solid #14b8a6;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Primary and Action Buttons */
@@ -307,18 +338,44 @@ QLineEdit:focus, QComboBox:focus, QDateEdit:focus, QTextEdit:focus {
 
 QTableWidget, QTableView {
     background-color: #ffffff;
+    alternate-background-color: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 10px;
     gridline-color: #f1f5f9;
 }
 
-QHeaderView::section {
-    background-color: #f8fafc;
-    color: #475569;
-    padding: 8px;
-    font-weight: 600;
+QHeaderView {
+    background-color: #f1f5f9;
     border: none;
-    border-bottom: 2px solid #e2e8f0;
+    border-top-left-radius: 9px;
+    border-top-right-radius: 9px;
+}
+
+QHeaderView::section {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #f8fafc, 
+        stop:1 #e2e8f0);
+    color: #1e293b;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    border: none;
+    border-right: 1px solid #cbd5e1;
+    border-bottom: 2px solid #0284c7;
+    text-transform: uppercase;
+}
+
+QHeaderView::section:hover {
+    background: #e2e8f0;
+    color: #0284c7;
+}
+
+QTableCornerButton::section {
+    background: #e2e8f0;
+    border: none;
+    border-bottom: 2px solid #0284c7;
+    border-right: 1px solid #cbd5e1;
 }
 
 QPushButton.PrimaryBtn {

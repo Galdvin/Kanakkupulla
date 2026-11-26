@@ -10,12 +10,14 @@ from PySide6.QtWidgets import (
     QLineEdit, QDateEdit, QMessageBox, QFrame
 )
 from PySide6.QtCore import Qt, QDate
+from PySide6.QtGui import QColor
 from core.expense_service import ExpenseService
 from core.category_service import CategoryService
 from core.family_service import FamilyService
 from core.transaction_search_service import TransactionSearchService
 from core.financial_utils import format_inr, format_date
 from config.constants import ExpenseKind
+from ui.table_helper import configure_fintech_table, EXPENSES_DAILY_WIDTHS, EXPENSES_OCCASIONAL_WIDTHS
 from ui.expenses.expense_dialog import ExpenseEntryDialog
 from ui.expenses.quick_expense_dialog import QuickExpenseDialog
 from ui.expenses.receipt_scanner_dialog import SmartReceiptDialog
@@ -99,14 +101,17 @@ class ExpensesView(QWidget):
         # 3. Expenses Table
         self.table = QTableWidget()
         headers = ["ID", "Date", "Title", "Category", "Paid By", "Expense For", "Account / Mode", "Attachments", "Amount"]
-        if self.expense_kind == ExpenseKind.OCCASIONAL.value:
+        is_occasional = (self.expense_kind == ExpenseKind.OCCASIONAL.value)
+        if is_occasional:
             headers.insert(3, "Event / Occasion")
 
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+
+        widths = EXPENSES_OCCASIONAL_WIDTHS if is_occasional else EXPENSES_DAILY_WIDTHS
+        configure_fintech_table(self.table, stretch_col=2, col_widths=widths)
         layout.addWidget(self.table)
 
         # 4. Action buttons bar
@@ -178,6 +183,7 @@ class ExpensesView(QWidget):
             # Amount
             amt_item = QTableWidgetItem(format_inr(txn.amount_paise))
             amt_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            amt_item.setForeground(QColor("#fb7185"))
             self.table.setItem(row, col, amt_item)
 
         self.total_lbl.setText(f"Total: {format_inr(total_paise)}")

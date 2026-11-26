@@ -8,11 +8,13 @@ from PySide6.QtWidgets import (
     QLineEdit, QDateEdit, QMessageBox, QFrame, QDialog
 )
 from PySide6.QtCore import Qt, QDate
+from PySide6.QtGui import QColor
 from core.income_service import IncomeService
 from core.family_service import FamilyService
 from core.accounting_service import AccountService
 from core.financial_utils import format_inr, inr_to_paise, format_date
 from config.constants import DEFAULT_INCOME_SOURCES
+from ui.table_helper import configure_fintech_table, INCOME_WIDTHS
 
 class IncomeEntryDialog(QDialog):
     def __init__(self, parent=None):
@@ -210,9 +212,9 @@ class IncomeView(QWidget):
         headers = ["ID", "Date", "Source", "Received By", "Credited Account", "Payment Mode", "Ref No", "Amount"]
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        configure_fintech_table(self.table, stretch_col=2, col_widths=INCOME_WIDTHS)
         layout.addWidget(self.table)
 
         # Footer
@@ -246,6 +248,7 @@ class IncomeView(QWidget):
 
             amt_item = QTableWidgetItem(format_inr(txn.amount_paise))
             amt_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            amt_item.setForeground(QColor("#10b981"))
             self.table.setItem(row, 7, amt_item)
 
         self.total_lbl.setText(f"Total Income: {format_inr(total_paise)}")

@@ -13,6 +13,7 @@ from PySide6.QtCore import Qt
 from core.investment_service import InvestmentService
 from core.family_service import FamilyService
 from ui.investments.investment_dialog import InvestmentDialog, UpdateValuationDialog
+from ui.table_helper import configure_fintech_table
 
 class InvestmentsView(QWidget):
     def __init__(self, parent=None):
@@ -93,19 +94,10 @@ class InvestmentsView(QWidget):
             "Asset Name", "Owner", "Asset Class", "Invested (₹)",
             "Current Value (₹)", "Gain / Loss", "Valuation Date", "Actions"
         ])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        for i in range(1, 8):
-            self.table.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeToContents)
-        self.table.setStyleSheet("""
-            QTableWidget {
-                background-color: #1e293b; border: 1px solid #334155;
-                gridline-color: #334155; color: #f8fafc; border-radius: 8px;
-            }
-            QHeaderView::section {
-                background-color: #0f172a; color: #94a3b8; padding: 8px;
-                border: 1px solid #334155; font-weight: 600;
-            }
-        """)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        inv_widths = {0: 180, 1: 120, 2: 120, 3: 130, 4: 130, 5: 120, 6: 110, 7: 90}
+        configure_fintech_table(self.table, stretch_col=0, col_widths=inv_widths)
         self.layout.addWidget(self.table)
 
         self.load_data()

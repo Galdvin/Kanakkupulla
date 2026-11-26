@@ -10,9 +10,11 @@ from PySide6.QtWidgets import (
     QFrame, QMessageBox
 )
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 from core.accounting_service_engine import AccountingEngineService
 from core.accounting_service import AccountService
 from core.financial_utils import format_inr, format_date
+from ui.table_helper import configure_fintech_table, LEDGER_WIDTHS
 
 class GeneralLedgerView(QWidget):
     def __init__(self, parent=None):
@@ -81,9 +83,9 @@ class GeneralLedgerView(QWidget):
         headers = ["Entry ID", "Txn ID", "Date", "Account", "Description", "Debit (₹)", "Credit (₹)"]
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        configure_fintech_table(self.table, stretch_col=4, col_widths=LEDGER_WIDTHS)
         root.addWidget(self.table)
 
     def load_ledger(self):
@@ -102,14 +104,14 @@ class GeneralLedgerView(QWidget):
             if e.entry_type == "DEBIT":
                 d_item = QTableWidgetItem(format_inr(e.amount_paise))
                 d_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                d_item.setForeground(Qt.green)
+                d_item.setForeground(QColor("#10b981"))
                 self.table.setItem(row, 5, d_item)
                 self.table.setItem(row, 6, QTableWidgetItem("-"))
             else: # CREDIT
                 self.table.setItem(row, 5, QTableWidgetItem("-"))
                 c_item = QTableWidgetItem(format_inr(e.amount_paise))
                 c_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                c_item.setForeground(Qt.red)
+                c_item.setForeground(QColor("#fb7185"))
                 self.table.setItem(row, 6, c_item)
 
         self.debits_lbl.setText(f"Debits: {format_inr(summary['total_debits'])}")

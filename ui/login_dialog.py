@@ -19,6 +19,7 @@ from core.authentication import AuthService
 from config.settings import ASSETS_DIR
 
 APP_LOGO_PATH = ASSETS_DIR / "icons" / "app_logo.svg"
+APP_ICON_PATH = ASSETS_DIR / "icons" / "app_icon.png"
 
 
 class LoginDialog(QDialog):
@@ -27,8 +28,18 @@ class LoginDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Kanakkupulla - Sign In")
-        self.setFixedSize(820, 510)
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        self.resize(860, 540)
+        self.setMinimumSize(780, 480)
+        self.setWindowFlags(
+            Qt.Window
+            | Qt.WindowTitleHint
+            | Qt.WindowSystemMenuHint
+            | Qt.WindowMinimizeButtonHint
+            | Qt.WindowMaximizeButtonHint
+            | Qt.WindowCloseButtonHint
+        )
+        if APP_ICON_PATH.exists():
+            self.setWindowIcon(QIcon(str(APP_ICON_PATH)))
         self.setStyleSheet("""
             QDialog {
                 background-color: #090d16;

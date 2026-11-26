@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QDate
 from reports.reporting_service import ReportingService
 from core.family_service import FamilyService
+from ui.table_helper import configure_fintech_table, REPORTS_CAT_WIDTHS, REPORTS_MEMBER_WIDTHS
 
 class ReportsView(QWidget):
     def __init__(self, parent=None):
@@ -127,10 +128,9 @@ class ReportsView(QWidget):
         self.cat_table = QTableWidget()
         self.cat_table.setColumnCount(4)
         self.cat_table.setHorizontalHeaderLabels(["Category", "Count", "Total (₹)", "Share"])
-        self.cat_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        for i in range(1, 4):
-            self.cat_table.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeToContents)
-        self.cat_table.setStyleSheet("background-color: #0f172a; border: 1px solid #334155; gridline-color: #334155; color: #f8fafc;")
+        self.cat_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.cat_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        configure_fintech_table(self.cat_table, stretch_col=0, col_widths=REPORTS_CAT_WIDTHS)
         cat_lay.addWidget(self.cat_table)
         splitter.addWidget(cat_box)
 
@@ -145,10 +145,9 @@ class ReportsView(QWidget):
         self.member_table = QTableWidget()
         self.member_table.setColumnCount(5)
         self.member_table.setHorizontalHeaderLabels(["Member", "Role", "Paid (₹)", "Benefited (₹)", "Net (₹)"])
-        self.member_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        for i in range(1, 5):
-            self.member_table.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeToContents)
-        self.member_table.setStyleSheet("background-color: #0f172a; border: 1px solid #334155; gridline-color: #334155; color: #f8fafc;")
+        self.member_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.member_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        configure_fintech_table(self.member_table, stretch_col=0, col_widths=REPORTS_MEMBER_WIDTHS)
         mem_lay.addWidget(self.member_table)
         splitter.addWidget(member_box)
 

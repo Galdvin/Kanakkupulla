@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt, QDate
 from core.category_service import CategoryService
 from core.family_service import FamilyService
 from core.budget_service import BudgetService
+from ui.table_helper import configure_fintech_table, BUDGET_CATEGORY_WIDTHS
 
 class BudgetDialog(QDialog):
     def __init__(self, parent=None):
@@ -29,14 +30,6 @@ class BudgetDialog(QDialog):
                 min-height: 24px;
             }
             QLineEdit:focus, QComboBox:focus, QDateEdit:focus { border: 1px solid #14b8a6; background-color: #0d1322; }
-            QTableWidget {
-                background-color: #111827; border: 1px solid #334155;
-                gridline-color: #1e293b; color: #f8fafc; border-radius: 8px;
-            }
-            QHeaderView::section {
-                background-color: #0d1322; color: #94a3b8; padding: 8px;
-                border: none; border-bottom: 2px solid #334155; font-weight: 700;
-            }
         """)
 
         layout = QVBoxLayout(self)
@@ -138,9 +131,7 @@ class BudgetDialog(QDialog):
         self.category_table = QTableWidget()
         self.category_table.setColumnCount(2)
         self.category_table.setHorizontalHeaderLabels(["Category", "Allocated (₹)"])
-        self.category_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.category_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.category_table.verticalHeader().setDefaultSectionSize(34)
+        configure_fintech_table(self.category_table, stretch_col=0, col_widths=BUDGET_CATEGORY_WIDTHS)
         self.populate_categories()
         layout.addWidget(self.category_table)
 

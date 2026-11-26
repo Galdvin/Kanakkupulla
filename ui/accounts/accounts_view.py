@@ -11,6 +11,7 @@ from PySide6.QtCore import Qt, QDate
 from core.accounting_service import AccountService
 from core.financial_utils import format_inr, inr_to_paise
 from config.constants import AccountType
+from ui.table_helper import configure_fintech_table, ACCOUNTS_WIDTHS
 
 class AccountCreateDialog(QDialog):
     def __init__(self, parent=None):
@@ -197,9 +198,9 @@ class AccountsView(QWidget):
         headers = ["ID", "Account Name", "Account Type", "Institution", "Opening Balance", "Current Balance"]
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        configure_fintech_table(self.table, stretch_col=1, col_widths=ACCOUNTS_WIDTHS)
         layout.addWidget(self.table)
 
         # Total net liquid balance

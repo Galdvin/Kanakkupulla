@@ -15,6 +15,7 @@ from core.accounting_service import AccountService
 from core.user_service import UserService
 from core.financial_utils import format_inr, inr_to_paise, format_date
 from config.constants import RecurringFrequency
+from ui.table_helper import configure_fintech_table, SUBSCRIPTION_WIDTHS
 
 class AddSubscriptionDialog(QDialog):
     def __init__(self, parent=None):
@@ -134,9 +135,9 @@ class SubscriptionView(QWidget):
         headers = ["Subscription", "Frequency", "Billed Amount", "Monthly Cost", "Annual Cost", "Next Renewal", "Status"]
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        configure_fintech_table(self.table, stretch_col=0, col_widths=SUBSCRIPTION_WIDTHS)
         root.addWidget(self.table)
 
         # Footer Metrics

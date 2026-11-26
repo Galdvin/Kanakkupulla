@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanakkupulla Net Worth Intelligence</title>
+  <style>
+    /* =============================================================
+       Tailwind-Inspired Utility System & Glassmorphism Design System
+       100% Self-Contained & Offline-Ready
+       ============================================================= */
+    *, ::before, ::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-width: 0;
+      border-style: solid;
+      border-color: #1e293b;
+    }
+
+    :root {
+      --bg-base: #090d16;
+      --bg-card: rgba(15, 23, 42, 0.65);
+      --bg-card-hover: rgba(30, 41, 59, 0.7);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --border-glass-glow: rgba(20, 184, 166, 0.35);
+      --teal-primary: #14b8a6;
+      --teal-glow: rgba(20, 184, 166, 0.25);
+      --rose-danger: #f43f5e;
+      --rose-glow: rgba(244, 63, 94, 0.25);
+      --sky-accent: #38bdf8;
+      --amber-warning: #f59e0b;
+      --emerald-success: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 12% 12%, rgba(20, 184, 166, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 88% 18%, rgba(56, 189, 248, 0.10) 0%, transparent 45%),
+        radial-gradient(circle at 50% 88%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    /* Layout Classes */
+    .block { display: block; }
+    .flex { display: flex; }
+    .inline-flex { display: inline-flex; }
+    .grid { display: grid; }
+    .hidden { display: none; }
+
+    .flex-row { flex-direction: row; }
+    .flex-col { flex-direction: column; }
+    .items-start { align-items: flex-start; }
+    .items-center { align-items: center; }
+    .items-end { align-items: flex-end; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .justify-end { justify-content: flex-end; }
+
+    .flex-1 { flex: 1 1 0%; }
+    .flex-shrink-0 { flex-shrink: 0; }
+
+    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+
+    .p-2 { padding: 0.5rem; }
+    .p-3 { padding: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-5 { padding: 1.25rem; }
+    .p-6 { padding: 1.5rem; }
+    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-3 { margin-bottom: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+
+    .text-xs { font-size: 0.75rem; line-height: 1rem; }
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-base { font-size: 1rem; line-height: 1.5rem; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+
+    .font-normal { font-weight: 400; }
+    .font-medium { font-weight: 500; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    .font-extrabold { font-weight: 800; }
+
+    .text-white { color: #ffffff; }
+    .text-slate-100 { color: #f1f5f9; }
+    .text-slate-300 { color: #cbd5e1; }
+    .text-slate-400 { color: #94a3b8; }
+    .text-slate-500 { color: #64748b; }
+    .text-teal-400 { color: #2dd4bf; }
+    .text-emerald-400 { color: #34d399; }
+    .text-rose-400 { color: #fb7185; }
+    .text-sky-400 { color: #38bdf8; }
+    .text-amber-400 { color: #fbbf24; }
+
+    .rounded-md { border-radius: 0.375rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .rounded-2xl { border-radius: 1rem; }
+    .rounded-full { border-radius: 9999px; }
+
+    .w-full { width: 100%; }
+    .h-full { height: 100%; }
+
+    /* Glassmorphic Components */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: 1rem;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.55);
+    }
+
+    .card-glow-teal::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #10b981, #14b8a6, #2dd4bf);
+    }
+
+    .card-glow-sky::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #0284c7, #0ea5e9, #38bdf8);
+    }
+
+    .card-glow-rose::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #e11d48, #f43f5e, #fb7185);
+    }
+
+    .card-glow-amber::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #d97706, #f59e0b, #fbbf24);
+    }
+
+    .btn-pill {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-pill:hover, .btn-pill.active {
+      background: rgba(20, 184, 166, 0.18);
+      border-color: var(--teal-primary);
+      color: #2dd4bf;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0d9488, #14b8a6);
+      color: #ffffff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0f766e, #0d9488);
+      box-shadow: 0 0 15px rgba(20, 184, 166, 0.4);
+    }
+
+    /* Progress bar */
+    .progress-track {
+      background: rgba(30, 41, 59, 0.8);
+      border-radius: 9999px;
+      height: 7px;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Custom SVG Tooltip */
+    .chart-tooltip {
+      position: absolute;
+      display: none;
+      pointer-events: none;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 0.6rem;
+      padding: 0.6rem 0.85rem;
+      font-size: 0.75rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="p-6">
+
+  <!-- ==============================================================
+       HEADER SECTION
+       ============================================================== -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-teal-400 font-extrabold text-xl">✦ Family Wealth & Net Worth Intelligence</span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          100% Offline Vault
+        </span>
+      </div>
+      <p class="text-slate-400 text-xs">Autonomous double-entry asset valuation, debt leverage analysis, and 6-month trajectory pacing</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button class="btn-primary" onclick="window.refreshData()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+          <path d="M16 21h5v-5"/>
+        </svg>
+        Refresh Vault
+      </button>
+    </div>
+  </div>
+
+  <!-- ==============================================================
+       TOP 4 GLASSMORPHIC KPI CARDS
+       ============================================================== -->
+  <div class="grid grid-cols-4 gap-4 mb-6">
+
+    <!-- Card 1: Net Worth -->
+    <div class="glass-card card-glow-teal p-5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Current Net Worth</span>
+        <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3h12l4 6-10 13L2 9Z"/>
+            <path d="M11 3 8 9l4 13 4-13-3-6"/>
+            <path d="M2 9h20"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text-2xl font-extrabold text-emerald-400 mb-1" id="kpi-net-worth">₹0.00</div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-slate-400">Assets minus Liabilities</span>
+        <span class="inline-flex items-center gap-1 text-emerald-400 font-semibold" id="kpi-net-worth-badge">▲ Solvency Leader</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Total Assets -->
+    <div class="glass-card card-glow-sky p-5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Assets</span>
+        <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="14" x="2" y="5" rx="2"/>
+            <line x1="2" x2="22" y1="10" y2="10"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text-2xl font-extrabold text-sky-400 mb-1" id="kpi-total-assets">₹0.00</div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-slate-400">Liquid + Investments</span>
+        <span class="text-sky-300 font-semibold" id="kpi-assets-sub">Bank accounts + Portfolio</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Total Liabilities -->
+    <div class="glass-card card-glow-rose p-5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Liabilities</span>
+        <div class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/>
+            <polyline points="16 17 22 17 22 11"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text-2xl font-extrabold text-rose-400 mb-1" id="kpi-total-liab">₹0.00</div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-slate-400">Active Debt Obligations</span>
+        <span class="text-rose-400 font-semibold" id="kpi-liab-badge">✓ Zero Debt Load</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Debt-to-Asset Ratio & Health -->
+    <div class="glass-card card-glow-amber p-5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Debt-to-Asset Ratio</span>
+        <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+      </div>
+      <div class="text-2xl font-extrabold text-amber-400 mb-1" id="kpi-debt-ratio">0.0%</div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-slate-400">Capital Adequacy Index</span>
+        <span class="text-amber-400 font-semibold" id="kpi-solvency-tier">Prime Tier</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==============================================================
+       CHART & SOLVENCY HEALTH ROW
+       ============================================================== -->
+  <div class="grid grid-cols-12 gap-6 mb-6">
+
+    <!-- Interactive Trajectory Chart (8 cols) -->
+    <div class="glass-card p-5 grid-cols-12" style="grid-column: span 8;">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+            Net Worth Growth & Trajectory
+            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-teal-500/10 text-teal-400 border border-teal-500/20">Interactive SVG</span>
+          </h3>
+          <p class="text-xs text-slate-400">6-Month historical wealth trajectory and asset pace curve</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-pill active" id="btn-view-nw" onclick="switchChartView('net_worth')">Net Worth Curve</button>
+          <button class="btn-pill" id="btn-view-split" onclick="switchChartView('assets_liabilities')">Assets vs Debt</button>
+        </div>
+      </div>
+
+      <!-- SVG Chart Canvas Area -->
+      <div class="relative w-full" style="height: 240px;" id="chart-container">
+        <svg id="trajectory-svg" class="w-full h-full" style="overflow: visible;"></svg>
+        <div id="chart-tooltip" class="chart-tooltip"></div>
+      </div>
+
+      <!-- Chart Legend -->
+      <div class="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-slate-800 text-xs text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-sm bg-emerald-400"></span>
+          <span>Net Worth</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-sm bg-sky-400"></span>
+          <span>Total Assets</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-sm bg-rose-400"></span>
+          <span>Total Liabilities</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capital Solvency & Emergency Runway (4 cols) -->
+    <div class="glass-card p-5" style="grid-column: span 4;">
+      <h3 class="text-base font-bold text-slate-100 mb-1">Financial Health & Solvency</h3>
+      <p class="text-xs text-slate-400 mb-4">Capital cushion and emergency liquidity buffer</p>
+
+      <!-- Solvency Score Gauge -->
+      <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 mb-4 text-center">
+        <div class="text-xs uppercase font-bold text-slate-400 mb-1 tracking-wider">Solvency Score</div>
+        <div class="text-3xl font-extrabold text-teal-400 mb-1" id="solvency-score-val">100 / 100</div>
+        <div class="text-xs font-semibold text-emerald-400" id="solvency-tier-label">Prime Solvency • Low Leverage</div>
+        <p class="text-xs text-slate-500 mt-2" id="solvency-desc-label">Zero debt load. Outstanding financial resilience.</p>
+      </div>
+
+      <!-- Emergency Runway -->
+      <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-slate-300">Emergency Cash Runway</span>
+          <span class="text-xs font-bold text-sky-400" id="runway-months-val">24+ Months</span>
+        </div>
+        <div class="progress-track mb-2">
+          <div class="progress-fill bg-sky-400" id="runway-bar" style="width: 100%;"></div>
+        </div>
+        <p class="text-xs text-slate-500">Liquid reserves cover ongoing living obligations without requiring debt or liquidation.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ==============================================================
+       ALLOCATION DONUT RINGS & ITEMIZED HOLDINGS ROW
+       ============================================================== -->
+  <div class="grid grid-cols-2 gap-6 mb-6">
+
+    <!-- Left: Asset Allocation & Breakdown -->
+    <div class="glass-card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+            Asset Composition
+            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">Donut Ring</span>
+          </h3>
+          <p class="text-xs text-slate-400">Proportional allocation across accounts and portfolios</p>
+        </div>
+        <span class="text-sm font-bold text-sky-400" id="assets-total-badge">₹0.00</span>
+      </div>
+
+      <div class="flex items-center gap-6 mb-4">
+        <!-- SVG Donut -->
+        <div class="relative flex-shrink-0" style="width: 130px; height: 130px;">
+          <svg id="donut-assets" width="130" height="130" viewBox="0 0 100 100"></svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span class="text-xs font-bold text-slate-400">ASSETS</span>
+            <span class="text-xs font-extrabold text-slate-100" id="donut-assets-pct">100%</span>
+          </div>
+        </div>
+        <!-- Donut Legend & Items -->
+        <div class="flex-1 flex flex-col gap-2.5" id="asset-allocation-legend">
+          <!-- Dynamic legend injected via JS -->
+        </div>
+      </div>
+
+      <!-- Itemized Asset Holdings List -->
+      <div class="pt-3 border-t border-slate-800">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Itemized Accounts & Investments</div>
+        <div class="flex flex-col gap-2" id="asset-items-list" style="max-height: 200px; overflow-y: auto;">
+          <!-- Dynamic accounts list -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: Liability Structure & Debt Breakdown -->
+    <div class="glass-card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+            Liability Structure
+            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Donut Ring</span>
+          </h3>
+          <p class="text-xs text-slate-400">Outstanding loans, credit cards, and debt load</p>
+        </div>
+        <span class="text-sm font-bold text-rose-400" id="liab-total-badge">₹0.00</span>
+      </div>
+
+      <div class="flex items-center gap-6 mb-4">
+        <!-- SVG Donut -->
+        <div class="relative flex-shrink-0" style="width: 130px; height: 130px;">
+          <svg id="donut-liab" width="130" height="130" viewBox="0 0 100 100"></svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span class="text-xs font-bold text-slate-400">DEBT</span>
+            <span class="text-xs font-extrabold text-slate-100" id="donut-liab-pct">0%</span>
+          </div>
+        </div>
+        <!-- Donut Legend & Items -->
+        <div class="flex-1 flex flex-col gap-2.5" id="liab-allocation-legend">
+          <!-- Dynamic legend injected via JS -->
+        </div>
+      </div>
+
+      <!-- Itemized Liabilities List -->
+      <div class="pt-3 border-t border-slate-800">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Active Loans & Credit Lines</div>
+        <div class="flex flex-col gap-2" id="liab-items-list" style="max-height: 200px; overflow-y: auto;">
+          <!-- Dynamic loans list -->
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ==============================================================
+       JAVASCRIPT LOGIC & SVG RENDERING ENGINE
+       ============================================================== -->
+  <script>
+    let globalData = null;
+    let currentChartView = 'net_worth'; // 'net_worth' or 'assets_liabilities'
+
+    function formatINR(paise) {
+      if (paise == null || isNaN(paise)) return '₹0.00';
+      const rs = (paise / 100).toFixed(2);
+      const parts = rs.split('.');
+      let integerPart = parts[0];
+      const decimalPart = parts[1];
+      const isNegative = integerPart.startsWith('-');
+      if (isNegative) integerPart = integerPart.substring(1);
+
+      let lastThree = integerPart.substring(integerPart.length - 3);
+      let otherNumbers = integerPart.substring(0, integerPart.length - 3);
+      if (otherNumbers !== '') {
+        lastThree = ',' + lastThree;
+      }
+      const formatted = otherNumbers.replace(/\\B(?=(\\d{2})+(?!\\d))/g, ',') + lastThree;
+      return (isNegative ? '-₹' : '₹') + formatted + '.' + decimalPart;
+    }
+
+    function switchChartView(view) {
+      currentChartView = view;
+      document.getElementById('btn-view-nw').classList.toggle('active', view === 'net_worth');
+      document.getElementById('btn-view-split').classList.toggle('active', view === 'assets_liabilities');
+      if (globalData) renderTrajectoryChart(globalData.trend_history || []);
+    }
+
+    function refreshData() {
+      if (window.pyBridge) {
+        window.pyBridge.onRefresh();
+      }
+    }
+
+    // Called by Python WebEngine host
+    window.updateNetWorthData = function(data) {
+      globalData = data;
+
+      // 1. KPI Cards
+      document.getElementById('kpi-net-worth').textContent = formatINR(data.net_worth_paise);
+      document.getElementById('kpi-total-assets').textContent = formatINR(data.total_assets_paise);
+      document.getElementById('kpi-total-liab').textContent = formatINR(data.total_liabilities_paise);
+      document.getElementById('kpi-debt-ratio').textContent = data.debt_to_asset_ratio_pct + '%';
+      document.getElementById('kpi-solvency-tier').textContent = data.solvency_tier || 'Prime Tier';
+
+      document.getElementById('assets-total-badge').textContent = formatINR(data.total_assets_paise);
+      document.getElementById('liab-total-badge').textContent = formatINR(data.total_liabilities_paise);
+
+      // Solvency card
+      document.getElementById('solvency-score-val').textContent = (data.solvency_score || 100) + ' / 100';
+      document.getElementById('solvency-tier-label').textContent = (data.solvency_tier || 'Prime') + ' Tier';
+      document.getElementById('solvency-desc-label').textContent = data.solvency_desc || 'Healthy capital structure.';
+
+      const runwayMonths = data.runway_months || 24;
+      document.getElementById('runway-months-val').textContent = runwayMonths >= 24 ? '24+ Months' : runwayMonths + ' Months';
+      const runwayPct = Math.min(100, (runwayMonths / 24) * 100);
+      document.getElementById('runway-bar').style.width = runwayPct + '%';
+
+      // 2. Render Trajectory Chart
+      renderTrajectoryChart(data.trend_history || []);
+
+      // 3. Render Donut Rings
+      renderDonut('donut-assets', data.asset_allocation || [], 'donut-assets-pct');
+      renderDonutLegend('asset-allocation-legend', data.asset_allocation || []);
+
+      renderDonut('donut-liab', data.liability_allocation || [], 'donut-liab-pct');
+      renderDonutLegend('liab-allocation-legend', data.liability_allocation || []);
+
+      // 4. Render Itemized Holdings
+      renderAssetItems(data.asset_items || [], data.total_assets_paise);
+      renderLiabilityItems(data.liability_items || [], data.total_liabilities_paise);
+    };
+
+    /* -----------------------------------------------------------------
+       SVG Trajectory Line & Gradient Area Chart Engine
+    ------------------------------------------------------------------ */
+    function renderTrajectoryChart(history) {
+      const svg = document.getElementById('trajectory-svg');
+      if (!svg) return;
+      svg.innerHTML = '';
+
+      if (!history || history.length === 0) {
+        history = [
+          { month_short: 'Jun', net_worth_paise: 25000000, assets_paise: 25000000, liabilities_paise: 0 },
+          { month_short: 'Jul', net_worth_paise: 26500000, assets_paise: 26500000, liabilities_paise: 0 },
+          { month_short: 'Aug', net_worth_paise: 28000000, assets_paise: 28000000, liabilities_paise: 0 },
+          { month_short: 'Sep', net_worth_paise: 29500000, assets_paise: 29500000, liabilities_paise: 0 },
+          { month_short: 'Oct', net_worth_paise: 30000000, assets_paise: 30000000, liabilities_paise: 0 },
+          { month_short: 'Nov', net_worth_paise: 31000000, assets_paise: 31000000, liabilities_paise: 0 }
+        ];
+      }
+
+      const rect = svg.getBoundingClientRect();
+      const W = rect.width || 600;
+      const H = rect.height || 240;
+      const padLeft = 60, padRight = 30, padTop = 20, padBottom = 35;
+      const plotW = W - padLeft - padRight;
+      const plotH = H - padTop - padBottom;
+
+      // Find Max Value for scaling
+      let maxVal = 0;
+      history.forEach(d => {
+        maxVal = Math.max(maxVal, d.assets_paise || 0, d.net_worth_paise || 0, d.liabilities_paise || 0);
+      });
+      maxVal = maxVal > 0 ? maxVal * 1.15 : 10000000;
+
+      // Create defs with gradients
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      defs.innerHTML = `
+        <linearGradient id="nwAreaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#10b981" stop-opacity="0.38"/>
+          <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+        </linearGradient>
+        <linearGradient id="assetsAreaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.32"/>
+          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.0"/>
+        </linearGradient>
+      `;
+      svg.appendChild(defs);
+
+      // Grid lines & Y Axis labels
+      for (let i = 0; i <= 4; i++) {
+        const y = padTop + (plotH / 4) * i;
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', padLeft);
+        line.setAttribute('y1', y);
+        line.setAttribute('x2', W - padRight);
+        line.setAttribute('y2', y);
+        line.setAttribute('stroke', '#1e293b');
+        line.setAttribute('stroke-dasharray', '3 3');
+        svg.appendChild(line);
+
+        const val = maxVal * (1 - i / 4);
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', padLeft - 10);
+        text.setAttribute('y', y + 4);
+        text.setAttribute('text-anchor', 'end');
+        text.setAttribute('fill', '#64748b');
+        text.setAttribute('font-size', '10px');
+        text.textContent = '₹' + ((val / 10000000).toFixed(1)) + 'L';
+        svg.appendChild(text);
+      }
+
+      const stepX = plotW / (history.length - 1);
+      const pointsNW = [];
+      const pointsAssets = [];
+      const pointsLiab = [];
+
+      history.forEach((d, i) => {
+        const x = padLeft + i * stepX;
+        const yNW = padTop + plotH - ((d.net_worth_paise || 0) / maxVal) * plotH;
+        const yAssets = padTop + plotH - ((d.assets_paise || 0) / maxVal) * plotH;
+        const yLiab = padTop + plotH - ((d.liabilities_paise || 0) / maxVal) * plotH;
+
+        pointsNW.push({ x, y: yNW, data: d });
+        pointsAssets.push({ x, y: yAssets, data: d });
+        pointsLiab.push({ x, y: yLiab, data: d });
+
+        // X Axis labels
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x);
+        text.setAttribute('y', H - 10);
+        text.setAttribute('text-anchor', 'center');
+        text.setAttribute('fill', '#94a3b8');
+        text.setAttribute('font-size', '11px');
+        text.setAttribute('font-weight', '600');
+        text.textContent = d.month_short || '';
+        svg.appendChild(text);
+      });
+
+      function createSmoothPath(points) {
+        if (points.length === 0) return '';
+        let d = `M ${points[0].x} ${points[0].y}`;
+        for (let i = 0; i < points.length - 1; i++) {
+          const p0 = points[i];
+          const p1 = points[i + 1];
+          const cpX1 = p0.x + (p1.x - p0.x) / 2;
+          const cpX2 = cpX1;
+          d += ` C ${cpX1} ${p0.y}, ${cpX2} ${p1.y}, ${p1.x} ${p1.y}`;
+        }
+        return d;
+      }
+
+      if (currentChartView === 'net_worth') {
+        // Draw Gradient Area for Net Worth
+        const areaD = createSmoothPath(pointsNW) + ` L ${pointsNW[pointsNW.length - 1].x} ${padTop + plotH} L ${pointsNW[0].x} ${padTop + plotH} Z`;
+        const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        areaPath.setAttribute('d', areaD);
+        areaPath.setAttribute('fill', 'url(#nwAreaGrad)');
+        svg.appendChild(areaPath);
+
+        // Draw Line for Net Worth
+        const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        linePath.setAttribute('d', createSmoothPath(pointsNW));
+        linePath.setAttribute('fill', 'none');
+        linePath.setAttribute('stroke', '#10b981');
+        linePath.setAttribute('stroke-width', '3');
+        svg.appendChild(linePath);
+
+        // Render point dots
+        pointsNW.forEach(p => {
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', p.x);
+          circle.setAttribute('cy', p.y);
+          circle.setAttribute('r', '4.5');
+          circle.setAttribute('fill', '#10b981');
+          circle.setAttribute('stroke', '#090d16');
+          circle.setAttribute('stroke-width', '2');
+          svg.appendChild(circle);
+        });
+      } else {
+        // Assets vs Liabilities
+        const assetsAreaD = createSmoothPath(pointsAssets) + ` L ${pointsAssets[pointsAssets.length - 1].x} ${padTop + plotH} L ${pointsAssets[0].x} ${padTop + plotH} Z`;
+        const aPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        aPath.setAttribute('d', assetsAreaD);
+        aPath.setAttribute('fill', 'url(#assetsAreaGrad)');
+        svg.appendChild(aPath);
+
+        const aLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        aLine.setAttribute('d', createSmoothPath(pointsAssets));
+        aLine.setAttribute('fill', 'none');
+        aLine.setAttribute('stroke', '#38bdf8');
+        aLine.setAttribute('stroke-width', '2.5');
+        svg.appendChild(aLine);
+
+        const lLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        lLine.setAttribute('d', createSmoothPath(pointsLiab));
+        lLine.setAttribute('fill', 'none');
+        lLine.setAttribute('stroke', '#f43f5e');
+        lLine.setAttribute('stroke-width', '2.5');
+        svg.appendChild(lLine);
+      }
+
+      // Tooltip interactive hover crosshair
+      const tooltip = document.getElementById('chart-tooltip');
+      const container = document.getElementById('chart-container');
+
+      container.onmousemove = function(e) {
+        const cRect = container.getBoundingClientRect();
+        const mouseX = e.clientX - cRect.left;
+
+        // find closest point
+        let closest = pointsNW[0];
+        let minDist = 999999;
+        pointsNW.forEach(p => {
+          const dist = Math.abs(p.x - mouseX);
+          if (dist < minDist) {
+            minDist = dist;
+            closest = p;
+          }
+        });
+
+        if (closest) {
+          tooltip.style.display = 'block';
+          tooltip.style.left = (closest.x - 30) + 'px';
+          tooltip.style.top = Math.max(0, closest.y - 65) + 'px';
+          tooltip.innerHTML = `
+            <div class="font-bold text-slate-100 mb-1">${closest.data.month_label || closest.data.month_short}</div>
+            <div class="text-emerald-400 font-semibold">Net Worth: ${formatINR(closest.data.net_worth_paise)}</div>
+            <div class="text-sky-400 text-xs">Assets: ${formatINR(closest.data.assets_paise)}</div>
+            <div class="text-rose-400 text-xs">Debt: ${formatINR(closest.data.liabilities_paise)}</div>
+          `;
+        }
+      };
+
+      container.onmouseleave = function() {
+        tooltip.style.display = 'none';
+      };
+    }
+
+    /* -----------------------------------------------------------------
+       SVG Donut Ring Visualizer
+    ------------------------------------------------------------------ */
+    function renderDonut(svgId, segments, pctLabelId) {
+      const svg = document.getElementById(svgId);
+      if (!svg) return;
+      svg.innerHTML = '';
+
+      let total = 0;
+      segments.forEach(s => total += s.amount_paise || 0);
+
+      const R = 38;
+      const cx = 50, cy = 50;
+      const circumference = 2 * Math.PI * R;
+
+      if (total === 0 || segments.length === 0) {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', R);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', '#1e293b');
+        circle.setAttribute('stroke-width', '10');
+        svg.appendChild(circle);
+        if (pctLabelId) document.getElementById(pctLabelId).textContent = '0%';
+        return;
+      }
+
+      let offset = 0;
+      segments.forEach(s => {
+        const share = (s.amount_paise || 0) / total;
+        const strokeLen = share * circumference;
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', R);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', s.color || '#38bdf8');
+        circle.setAttribute('stroke-width', '10');
+        circle.setAttribute('stroke-dasharray', `${strokeLen} ${circumference - strokeLen}`);
+        circle.setAttribute('stroke-dashoffset', -offset);
+        circle.setAttribute('transform', 'rotate(-90 50 50)');
+        svg.appendChild(circle);
+        offset += strokeLen;
+      });
+
+      if (pctLabelId) document.getElementById(pctLabelId).textContent = '100%';
+    }
+
+    function renderDonutLegend(containerId, segments) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      el.innerHTML = '';
+
+      if (!segments || segments.length === 0) {
+        el.innerHTML = '<div class="text-xs text-slate-500">No data available</div>';
+        return;
+      }
+
+      segments.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between text-xs';
+        div.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${s.color};"></span>
+            <span class="text-slate-300 font-medium">${s.name}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-slate-100">${formatINR(s.amount_paise)}</span>
+            <span class="text-slate-400 font-semibold">(${s.percentage}%)</span>
+          </div>
+        `;
+        el.appendChild(div);
+      });
+    }
+
+    /* -----------------------------------------------------------------
+       Itemized Holdings Tables
+    ------------------------------------------------------------------ */
+    function renderAssetItems(items, totalAssets) {
+      const el = document.getElementById('asset-items-list');
+      if (!el) return;
+      el.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        el.innerHTML = '<div class="text-xs text-slate-500 p-2">No asset holdings registered.</div>';
+        return;
+      }
+
+      items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'p-2.5 rounded-lg bg-slate-900/50 border border-slate-800 flex items-center justify-between';
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-md bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-xs font-bold">
+              ${item.is_liquid ? '🏦' : '📈'}
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-100">${item.name}</div>
+              <div class="text-xs text-slate-400">${item.institution} • ${item.category}</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs font-bold text-emerald-400">${formatINR(item.value_paise)}</div>
+            <div class="text-xs text-slate-500">${item.share_pct}% share</div>
+          </div>
+        `;
+        el.appendChild(row);
+      });
+    }
+
+    function renderLiabilityItems(items, totalLiab) {
+      const el = document.getElementById('liab-items-list');
+      if (!el) return;
+      el.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        el.innerHTML = `
+          <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
+            <span class="text-emerald-400 text-xs font-bold">🎉 Outstanding Debt Free!</span>
+            <p class="text-slate-400 text-xs mt-0.5">No active loans or negative credit balances found.</p>
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'p-2.5 rounded-lg bg-slate-900/50 border border-slate-800 flex items-center justify-between';
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-md bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 text-xs font-bold">
+              💳
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-100">${item.name}</div>
+              <div class="text-xs text-slate-400">${item.institution} • ${item.category}</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs font-bold text-rose-400">${formatINR(item.value_paise)}</div>
+            <div class="text-xs text-slate-500">${item.share_pct}% share</div>
+          </div>
+        `;
+        el.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>

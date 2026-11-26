@@ -15,6 +15,7 @@ from core.recurring_service import RecurringService
 from core.family_service import FamilyService
 from config.constants import TransactionType
 from ui.recurring.recurring_dialog import RecurringRuleDialog
+from ui.table_helper import configure_fintech_table
 
 class RecurringView(QWidget):
     def __init__(self, parent=None):
@@ -88,19 +89,10 @@ class RecurringView(QWidget):
             "Rule Title", "Type", "Frequency", "Next Due Date",
             "Amount (₹)", "Category", "Account", "Status", "Actions"
         ])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        for i in range(1, 9):
-            self.table.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeToContents)
-        self.table.setStyleSheet("""
-            QTableWidget {
-                background-color: #1e293b; border: 1px solid #334155;
-                gridline-color: #334155; color: #f8fafc; border-radius: 8px;
-            }
-            QHeaderView::section {
-                background-color: #0f172a; color: #94a3b8; padding: 8px;
-                border: 1px solid #334155; font-weight: 600;
-            }
-        """)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        rec_widths = {0: 180, 1: 95, 2: 105, 3: 115, 4: 125, 5: 135, 6: 145, 7: 95, 8: 90}
+        configure_fintech_table(self.table, stretch_col=0, col_widths=rec_widths)
         self.layout.addWidget(self.table)
 
         self.load_data()

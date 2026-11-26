@@ -185,38 +185,81 @@ QComboBox QAbstractItemView::item:selected {
     font-weight: 600;
 }
 
-/* Tables */
+/* Tables & Table Headers (Fintech Luxury Design) */
 QTableWidget, QTableView {
-    background-color: #0f172a;
-    alternate-background-color: #111a2e;
+    background-color: #090e1a;
+    alternate-background-color: #0e1526;
     border: 1px solid #1e293b;
-    border-radius: 12px;
-    gridline-color: #1e293b;
+    border-radius: 10px;
+    gridline-color: rgba(30, 41, 59, 0.7);
     selection-background-color: rgba(20, 184, 166, 0.22);
-    selection-color: #f8fafc;
+    selection-color: #ffffff;
+    outline: none;
 }
 
 QTableWidget::item, QTableView::item {
-    padding: 8px 12px;
-    border-bottom: 1px solid #1e293b;
+    padding: 8px 14px;
+    border-bottom: 1px solid rgba(30, 41, 59, 0.6);
+    color: #e2e8f0;
+    font-size: 13px;
 }
 
 QTableWidget::item:selected, QTableView::item:selected {
-    background-color: rgba(20, 184, 166, 0.22);
+    background-color: rgba(20, 184, 166, 0.25);
     color: #2dd4bf;
     font-weight: 600;
 }
 
-QHeaderView::section {
-    background-color: #0b1120;
-    color: #94a3b8;
-    padding: 10px 12px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+QTableWidget::item:hover, QTableView::item:hover {
+    background-color: rgba(30, 41, 59, 0.65);
+}
+
+QHeaderView {
+    background-color: #0c1424;
     border: none;
-    border-bottom: 2px solid #1e293b;
+    border-top-left-radius: 9px;
+    border-top-right-radius: 9px;
+}
+
+QHeaderView::section {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #1b2840, 
+        stop:0.45 #121c2e, 
+        stop:1 #0b1322);
+    color: #93c5fd;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 2px solid #14b8a6;
+    text-transform: uppercase;
+}
+
+QHeaderView::section:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+        stop:0 #233656, 
+        stop:0.45 #19273f, 
+        stop:1 #101c30);
+    color: #38bdf8;
+    border-bottom: 2px solid #2dd4bf;
+}
+
+QHeaderView::section:first {
+    border-top-left-radius: 9px;
+}
+
+QHeaderView::section:last {
+    border-right: none;
+    border-top-right-radius: 9px;
+}
+
+QTableCornerButton::section {
+    background: #121c2e;
+    border: none;
+    border-bottom: 2px solid #14b8a6;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Buttons */

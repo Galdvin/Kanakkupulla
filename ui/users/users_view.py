@@ -12,6 +12,7 @@ from core.user_service import UserService
 from core.authentication import AuthService
 from config.constants import UserRole
 from core.financial_utils import format_date
+from ui.table_helper import configure_fintech_table, USERS_WIDTHS
 
 class UserEditDialog(QDialog):
     def __init__(self, user=None, parent=None):
@@ -137,10 +138,10 @@ class UsersView(QWidget):
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(["ID", "Name", "Username", "Role", "Status", "Date Added"])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.doubleClicked.connect(self.open_edit_dialog)
+        configure_fintech_table(self.table, stretch_col=1, col_widths=USERS_WIDTHS)
         layout.addWidget(self.table)
 
         # Bottom Actions

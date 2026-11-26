@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from core.settings_service import SettingsService
 from core.backup_service import BackupService
+from ui.table_helper import configure_fintech_table, BACKUP_WIDTHS
 
 class SettingsView(QWidget):
     def __init__(self, parent=None):
@@ -146,10 +147,9 @@ class SettingsView(QWidget):
         self.backup_table = QTableWidget()
         self.backup_table.setColumnCount(4)
         self.backup_table.setHorizontalHeaderLabels(["Filename", "Created At", "Size", "Type"])
-        self.backup_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        for i in range(1, 4):
-            self.backup_table.horizontalHeader().setSectionResizeMode(i, QHeaderView.ResizeToContents)
-        self.backup_table.setStyleSheet("background-color: #0f172a; border: 1px solid #334155; gridline-color: #334155; color: #f8fafc; border-radius: 6px;")
+        self.backup_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.backup_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        configure_fintech_table(self.backup_table, stretch_col=0, col_widths=BACKUP_WIDTHS)
         lay.addWidget(self.backup_table)
 
         self.tabs.addTab(tab, "💾 Backup & Recovery")
