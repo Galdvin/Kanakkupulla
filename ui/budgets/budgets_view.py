@@ -49,12 +49,19 @@ class BudgetsView(QWidget):
 
         # Add Budget Button
         add_btn = QPushButton("+ Create New Budget")
+        add_btn.setCursor(Qt.PointingHandCursor)
+        add_btn.setFixedHeight(36)
         add_btn.setStyleSheet("""
             QPushButton {
-                background-color: #0284c7; color: white; font-weight: 600;
-                padding: 8px 16px; border-radius: 6px; font-size: 13px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f766e, stop:1 #14b8a6);
+                color: white; font-weight: 700;
+                padding: 6px 16px; border-radius: 8px; font-size: 13px;
+                border: 1px solid #2dd4bf;
             }
-            QPushButton:hover { background-color: #0369a1; }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #14b8a6, stop:1 #2dd4bf);
+                color: #0f172a;
+            }
         """)
         add_btn.clicked.connect(self.open_add_dialog)
         header_layout.addWidget(add_btn)

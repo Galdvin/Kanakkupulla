@@ -23,7 +23,8 @@ class ExpenseEntryDialog(QDialog):
         self.expense_kind = expense_kind
         self.selected_attachment_path = None
         self.setWindowTitle(f"Add {'Occasional Expense' if expense_kind == ExpenseKind.OCCASIONAL.value else 'Daily Expense'}")
-        self.setFixedSize(520, 640)
+        self.resize(540, 680)
+        self.setMinimumSize(480, 580)
         self.init_ui()
 
     def init_ui(self):
@@ -206,8 +207,16 @@ class ExpenseEntryDialog(QDialog):
         qdate = self.date_edit.date()
         txn_date = date(qdate.year(), qdate.month(), qdate.day())
         account_id = self.account_combo.currentData()
+        if not account_id:
+            QMessageBox.warning(self, "Validation", "Please select a payment account.")
+            return
+
         paid_by_id = self.paid_by_combo.currentData()
-        expense_for_id = self.expense_for_combo.currentData()
+        if not paid_by_id:
+            QMessageBox.warning(self, "Validation", "Please select who paid for this expense.")
+            return
+
+        expense_for_id = self.expense_for_combo.currentData() or paid_by_id
         cat_id = self.category_combo.currentData()
         subcat_id = self.subcategory_combo.currentData()
         pm = self.pm_combo.currentText()

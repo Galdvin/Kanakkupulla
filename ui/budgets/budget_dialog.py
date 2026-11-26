@@ -4,10 +4,11 @@ Allows allocating monthly/periodic budgets across categories with live sum previ
 """
 from typing import Dict, Optional
 from datetime import date
+import calendar
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QComboBox, QDateEdit, QPushButton, QTableWidget, QTableWidgetItem,
-    QHeaderView, QMessageBox, QFrame, QSpinBox
+    QHeaderView, QMessageBox, QFrame, QSpinBox, QWidget
 )
 from PySide6.QtCore import Qt, QDate
 from core.category_service import CategoryService
@@ -18,55 +19,69 @@ class BudgetDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Create New Budget")
-        self.setFixedSize(580, 680)
+        self.setFixedSize(600, 700)
         self.setStyleSheet("""
-            QDialog { background-color: #0f172a; color: #f8fafc; }
-            QLabel { color: #94a3b8; font-size: 13px; font-weight: 500; }
+            QDialog { background-color: #0a0f1d; color: #f8fafc; }
+            QLabel { color: #94a3b8; font-size: 13px; font-weight: 600; }
             QLineEdit, QComboBox, QDateEdit, QSpinBox {
-                background-color: #1e293b; border: 1px solid #334155;
-                border-radius: 6px; padding: 8px 12px; color: #f8fafc; font-size: 13px;
+                background-color: #111827; border: 1px solid #334155;
+                border-radius: 8px; padding: 6px 12px; color: #f8fafc; font-size: 13px;
+                min-height: 24px;
             }
-            QLineEdit:focus, QComboBox:focus, QDateEdit:focus { border: 1px solid #0ea5e9; }
+            QLineEdit:focus, QComboBox:focus, QDateEdit:focus { border: 1px solid #14b8a6; background-color: #0d1322; }
             QTableWidget {
-                background-color: #1e293b; border: 1px solid #334155;
-                gridline-color: #334155; color: #f8fafc; border-radius: 6px;
+                background-color: #111827; border: 1px solid #334155;
+                gridline-color: #1e293b; color: #f8fafc; border-radius: 8px;
             }
             QHeaderView::section {
-                background-color: #0f172a; color: #94a3b8; padding: 6px;
-                border: 1px solid #334155; font-weight: 600;
+                background-color: #0d1322; color: #94a3b8; padding: 8px;
+                border: none; border-bottom: 2px solid #334155; font-weight: 700;
             }
         """)
 
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
-        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setContentsMargins(24, 20, 24, 20)
 
-        # Title
-        title_lbl = QLabel("New Expense Budget")
-        title_lbl.setStyleSheet("font-size: 18px; font-weight: 700; color: #38bdf8;")
-        layout.addWidget(title_lbl)
+        # Header Title
+        header_wrap = QWidget()
+        header_layout = QVBoxLayout(header_wrap)
+        header_layout.setContentsMargins(0, 0, 0, 4)
+        header_layout.setSpacing(2)
+
+        title_lbl = QLabel("🎯 Create New Budget")
+        title_lbl.setStyleSheet("font-size: 18px; font-weight: 800; color: #2dd4bf;")
+        header_layout.addWidget(title_lbl)
+
+        sub_lbl = QLabel("Define spending caps and optional category breakdown limits")
+        sub_lbl.setStyleSheet("font-size: 12px; color: #64748b; font-weight: 500;")
+        header_layout.addWidget(sub_lbl)
+        layout.addWidget(header_wrap)
 
         # Name
         layout.addWidget(QLabel("Budget Name *"))
         self.name_input = QLineEdit()
+        self.name_input.setFixedHeight(38)
         self.name_input.setPlaceholderText("e.g. March 2026 Household Budget")
         layout.addWidget(self.name_input)
 
         # Member & Period Row
         row1 = QHBoxLayout()
         v1 = QVBoxLayout()
-        v1.addWidget(QLabel("Budget Scope (Family Member)"))
+        v1.addWidget(QLabel("Budget Scope"))
         self.member_combo = QComboBox()
+        self.member_combo.setFixedHeight(38)
         self.member_combo.addItem("Entire Family (Shared)", None)
         members = FamilyService.get_all_members()
         for m in members:
-            self.member_combo.addItem(f"{m.name} ({m.relation_type})", m.id)
+            self.member_combo.addItem(f"👤 {m.name} ({m.relation_type})", m.id)
         v1.addWidget(self.member_combo)
         row1.addLayout(v1)
 
         v2 = QVBoxLayout()
         v2.addWidget(QLabel("Period Type"))
         self.period_combo = QComboBox()
+        self.period_combo.setFixedHeight(38)
         self.period_combo.addItems(["Monthly", "Quarterly", "Annual", "Custom"])
         v2.addWidget(self.period_combo)
         row1.addLayout(v2)
@@ -77,6 +92,7 @@ class BudgetDialog(QDialog):
         v3 = QVBoxLayout()
         v3.addWidget(QLabel("Start Date"))
         self.start_date_edit = QDateEdit()
+        self.start_date_edit.setFixedHeight(38)
         self.start_date_edit.setCalendarPopup(True)
         today = date.today()
         first_of_month = date(today.year, today.month, 1)
@@ -87,9 +103,8 @@ class BudgetDialog(QDialog):
         v4 = QVBoxLayout()
         v4.addWidget(QLabel("End Date"))
         self.end_date_edit = QDateEdit()
+        self.end_date_edit.setFixedHeight(38)
         self.end_date_edit.setCalendarPopup(True)
-        # End of current month
-        import calendar
         _, last_day = calendar.monthrange(today.year, today.month)
         self.end_date_edit.setDate(QDate(today.year, today.month, last_day))
         v4.addWidget(self.end_date_edit)
@@ -99,7 +114,23 @@ class BudgetDialog(QDialog):
         # Total Amount
         layout.addWidget(QLabel("Total Budget Cap (₹) *"))
         self.total_input = QLineEdit()
+        self.total_input.setFixedHeight(40)
         self.total_input.setPlaceholderText("e.g. 50000")
+        self.total_input.setStyleSheet("""
+            QLineEdit {
+                font-size: 16px;
+                font-weight: 700;
+                color: #2dd4bf;
+                background-color: #111827;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 4px 12px;
+            }
+            QLineEdit:focus {
+                border: 1px solid #14b8a6;
+                background-color: #0a0f1d;
+            }
+        """)
         layout.addWidget(self.total_input)
 
         # Category Allocations
@@ -109,17 +140,46 @@ class BudgetDialog(QDialog):
         self.category_table.setHorizontalHeaderLabels(["Category", "Allocated (₹)"])
         self.category_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.category_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.category_table.verticalHeader().setDefaultSectionSize(34)
         self.populate_categories()
         layout.addWidget(self.category_table)
 
         # Buttons
         btn_layout = QHBoxLayout()
         cancel_btn = QPushButton("Cancel")
-        cancel_btn.setStyleSheet("background-color: #334155; color: #f8fafc; padding: 9px 18px; border-radius: 6px;")
+        cancel_btn.setFixedHeight(40)
+        cancel_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #1e293b;
+                color: #94a3b8;
+                border: 1px solid #334155;
+                padding: 8px 18px;
+                border-radius: 8px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: #334155;
+                color: #f8fafc;
+            }
+        """)
         cancel_btn.clicked.connect(self.reject)
 
         save_btn = QPushButton("Create Budget")
-        save_btn.setStyleSheet("background-color: #0284c7; color: white; font-weight: 600; padding: 9px 18px; border-radius: 6px;")
+        save_btn.setFixedHeight(40)
+        save_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f766e, stop:1 #14b8a6);
+                color: white;
+                font-weight: 700;
+                padding: 8px 22px;
+                border-radius: 8px;
+                border: 1px solid #2dd4bf;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #14b8a6, stop:1 #2dd4bf);
+                color: #0f172a;
+            }
+        """)
         save_btn.clicked.connect(self.save)
 
         btn_layout.addStretch()
@@ -129,6 +189,8 @@ class BudgetDialog(QDialog):
 
     def populate_categories(self):
         categories = CategoryService.get_categories_by_type("Expense")
+        if not categories:
+            categories = CategoryService.get_all_categories()
         self.category_table.setRowCount(len(categories))
         for row, cat in enumerate(categories):
             name_item = QTableWidgetItem(cat.name)

@@ -20,6 +20,23 @@ class CategoryService:
             db.close()
 
     @staticmethod
+    def get_categories_by_type(category_type: str = "Expense", active_only: bool = True) -> List[Category]:
+        db = SessionLocal()
+        try:
+            q = db.query(Category)
+            if active_only:
+                q = q.filter_by(is_active=True)
+            if category_type:
+                q = q.filter(Category.category_type.ilike(category_type))
+            cats = q.order_by(Category.name).all()
+            if not cats and category_type == "Expense":
+                # Fallback to all active categories if none specifically tagged
+                return db.query(Category).filter_by(is_active=True).order_by(Category.name).all()
+            return cats
+        finally:
+            db.close()
+
+    @staticmethod
     def get_subcategories(category_id: int, active_only: bool = True) -> List[Subcategory]:
         db = SessionLocal()
         try:

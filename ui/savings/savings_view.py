@@ -50,24 +50,38 @@ class SavingsView(QWidget):
 
         # Deposit Button
         deposit_btn = QPushButton("💰 Add Deposit")
+        deposit_btn.setCursor(Qt.PointingHandCursor)
+        deposit_btn.setFixedHeight(36)
         deposit_btn.setStyleSheet("""
             QPushButton {
-                background-color: #10b981; color: white; font-weight: 600;
-                padding: 8px 16px; border-radius: 6px; font-size: 13px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #059669, stop:1 #10b981);
+                color: white; font-weight: 700;
+                padding: 6px 16px; border-radius: 8px; font-size: 13px;
+                border: 1px solid #34d399;
             }
-            QPushButton:hover { background-color: #059669; }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10b981, stop:1 #34d399);
+                color: #0f172a;
+            }
         """)
         deposit_btn.clicked.connect(self.open_deposit_dialog)
         header_layout.addWidget(deposit_btn)
 
         # Add Goal Button
         add_btn = QPushButton("+ New Goal")
+        add_btn.setCursor(Qt.PointingHandCursor)
+        add_btn.setFixedHeight(36)
         add_btn.setStyleSheet("""
             QPushButton {
-                background-color: #0284c7; color: white; font-weight: 600;
-                padding: 8px 16px; border-radius: 6px; font-size: 13px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f766e, stop:1 #14b8a6);
+                color: white; font-weight: 700;
+                padding: 6px 16px; border-radius: 8px; font-size: 13px;
+                border: 1px solid #2dd4bf;
             }
-            QPushButton:hover { background-color: #0369a1; }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #14b8a6, stop:1 #2dd4bf);
+                color: #0f172a;
+            }
         """)
         add_btn.clicked.connect(self.open_add_goal_dialog)
         header_layout.addWidget(add_btn)
@@ -99,6 +113,16 @@ class SavingsView(QWidget):
             self.load_data()
 
     def open_deposit_dialog(self, goal_id: Optional[int] = None):
+        goals = SavingsService.get_all_goals()
+        if not goals:
+            reply = QMessageBox.question(
+                self, "No Active Savings Goals",
+                "You haven't created any savings goals yet.\n\nWould you like to create a new goal first?",
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes
+            )
+            if reply == QMessageBox.Yes:
+                self.open_add_goal_dialog()
+            return
         dlg = SavingsContributionDialog(preselected_goal_id=goal_id, parent=self)
         if dlg.exec():
             self.load_data()

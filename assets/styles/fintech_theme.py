@@ -157,6 +157,25 @@ QComboBox QAbstractItemView {
     selection-background-color: #0f766e;
     selection-color: #ffffff;
     padding: 4px;
+    outline: none;
+}
+
+QComboBox QAbstractItemView::item {
+    min-height: 28px;
+    padding: 4px 8px;
+    color: #f8fafc;
+    background-color: #111827;
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background-color: #1e293b;
+    color: #ffffff;
+}
+
+QComboBox QAbstractItemView::item:selected {
+    background-color: #0f766e;
+    color: #ffffff;
+    font-weight: 600;
 }
 
 /* Tables */

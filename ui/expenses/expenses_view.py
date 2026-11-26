@@ -183,7 +183,7 @@ class ExpensesView(QWidget):
         self.total_lbl.setText(f"Total: {format_inr(total_paise)}")
 
     def open_quick_dialog(self):
-        dlg = QuickExpenseDialog(parent=self)
+        dlg = QuickExpenseDialog(expense_kind=self.expense_kind, parent=self)
         if dlg.exec():
             self.load_expenses()
 

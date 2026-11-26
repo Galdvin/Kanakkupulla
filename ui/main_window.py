@@ -482,9 +482,10 @@ class MainWindow(QMainWindow):
     def open_quick_expense(self):
         """Open ultra-fast quick expense dialog."""
         from ui.expenses.quick_expense_dialog import QuickExpenseDialog
-        dlg = QuickExpenseDialog(parent=self)
+        current_page = self.stack.currentWidget()
+        current_kind = getattr(current_page, "expense_kind", ExpenseKind.DAILY.value)
+        dlg = QuickExpenseDialog(expense_kind=current_kind, parent=self)
         if dlg.exec():
-            current_page = self.stack.currentWidget()
             if hasattr(current_page, "load_expenses"):
                 current_page.load_expenses()
             elif hasattr(current_page, "refresh"):
