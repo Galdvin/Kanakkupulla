@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QDate
 from core.income_service import IncomeService
-from core.user_service import UserService
+from core.family_service import FamilyService
 from core.accounting_service import AccountService
 from core.financial_utils import format_inr, inr_to_paise, format_date
 from config.constants import DEFAULT_INCOME_SOURCES
@@ -18,27 +18,31 @@ class IncomeEntryDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Record Income")
-        self.setFixedSize(450, 480)
+        self.resize(500, 560)
+        self.setMinimumSize(460, 500)
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setSpacing(12)
-        layout.setContentsMargins(24, 20, 24, 20)
+        layout.setSpacing(14)
+        layout.setContentsMargins(28, 24, 28, 24)
 
         # Source / Title
         layout.addWidget(QLabel("Income Source / Title:"))
         self.source_combo = QComboBox()
         self.source_combo.setEditable(True)
         self.source_combo.addItems(DEFAULT_INCOME_SOURCES)
+        self.source_combo.setFixedHeight(38)
         layout.addWidget(self.source_combo)
 
         # Amount & Date row
         row1 = QHBoxLayout()
+        row1.setSpacing(12)
         vbox_amt = QVBoxLayout()
         vbox_amt.addWidget(QLabel("Amount Received (₹):"))
         self.amount_input = QLineEdit()
         self.amount_input.setPlaceholderText("0.00")
+        self.amount_input.setFixedHeight(38)
         vbox_amt.addWidget(self.amount_input)
         row1.addLayout(vbox_amt)
 
@@ -48,16 +52,20 @@ class IncomeEntryDialog(QDialog):
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setDate(QDate.currentDate())
         self.date_edit.setDisplayFormat("dd-MM-yyyy")
+        self.date_edit.setFixedHeight(38)
         vbox_date.addWidget(self.date_edit)
         row1.addLayout(vbox_date)
         layout.addLayout(row1)
 
         # Destination Account & Mode
         row2 = QHBoxLayout()
+        row2.setSpacing(12)
         vbox_acc = QVBoxLayout()
         vbox_acc.addWidget(QLabel("Credited To Account:"))
         self.account_combo = QComboBox()
-        for acc in AccountService.get_all_accounts():
+        self.account_combo.setFixedHeight(38)
+        accounts = AccountService.get_all_accounts()
+        for acc in accounts:
             self.account_combo.addItem(f"{acc.name} ({acc.account_type})", acc.id)
         vbox_acc.addWidget(self.account_combo)
         row2.addLayout(vbox_acc)
@@ -65,6 +73,7 @@ class IncomeEntryDialog(QDialog):
         vbox_mode = QVBoxLayout()
         vbox_mode.addWidget(QLabel("Payment Mode:"))
         self.mode_combo = QComboBox()
+        self.mode_combo.setFixedHeight(38)
         self.mode_combo.addItems(["Bank Transfer", "NEFT / RTGS / IMPS", "UPI", "Cheque", "Cash", "Other"])
         vbox_mode.addWidget(self.mode_combo)
         row2.addLayout(vbox_mode)
@@ -73,20 +82,37 @@ class IncomeEntryDialog(QDialog):
         # Received By (Family Member)
         layout.addWidget(QLabel("Received By (Earner):"))
         self.user_combo = QComboBox()
-        for u in UserService.get_active_users():
-            self.user_combo.addItem(u.full_name, u.id)
+        self.user_combo.setFixedHeight(38)
+        members = FamilyService.get_all_members()
+        for m in members:
+            role_tag = f" ({m.relation_type})" if m.relation_type else ""
+            self.user_combo.addItem(f"👤 {m.name}{role_tag}", m.id)
         layout.addWidget(self.user_combo)
 
         # Reference No
         layout.addWidget(QLabel("Reference / Cheque / UTR No:"))
         self.ref_input = QLineEdit()
         self.ref_input.setPlaceholderText("Optional transaction reference")
+        self.ref_input.setFixedHeight(38)
         layout.addWidget(self.ref_input)
 
-        layout.addSpacing(12)
+        layout.addSpacing(10)
         self.save_btn = QPushButton("Save Income")
         self.save_btn.setProperty("class", "PrimaryBtn")
-        self.save_btn.setFixedHeight(38)
+        self.save_btn.setFixedHeight(42)
+        self.save_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0d9488, stop:1 #14b8a6);
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 14px;
+                border: none;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f766e, stop:1 #0d9488);
+            }
+        """)
         self.save_btn.clicked.connect(self.save)
         layout.addWidget(self.save_btn)
 
@@ -112,11 +138,20 @@ class IncomeEntryDialog(QDialog):
         mode = self.mode_combo.currentText()
         ref = self.ref_input.text().strip() or None
 
+        if not account_id:
+            QMessageBox.warning(self, "Validation", "Please select a destination account")
+            return
+
+        if not received_by_id:
+            QMessageBox.warning(self, "Validation", "Please select an earner (family member)")
+            return
+
         ok, msg, _ = IncomeService.record_income(
             source_title=source,
             amount_paise=amt_paise,
             income_date=inc_date,
             account_id=account_id,
+            received_by_member_id=received_by_id,
             received_by_id=received_by_id,
             payment_mode=mode,
             reference_no=ref
@@ -152,7 +187,20 @@ class IncomeView(QWidget):
         header.addStretch()
 
         self.add_btn = QPushButton("+ Record Income")
-        self.add_btn.setProperty("class", "SuccessBtn")
+        self.add_btn.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0d9488, stop:1 #14b8a6);
+                color: #ffffff;
+                font-weight: 700;
+                font-size: 13px;
+                padding: 8px 18px;
+                border: none;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f766e, stop:1 #0d9488);
+            }
+        """)
         self.add_btn.clicked.connect(self.open_add_dialog)
         header.addWidget(self.add_btn)
         layout.addLayout(header)
@@ -189,9 +237,11 @@ class IncomeView(QWidget):
             self.table.setItem(row, 0, QTableWidgetItem(str(txn.id)))
             self.table.setItem(row, 1, QTableWidgetItem(format_date(txn.transaction_date)))
             self.table.setItem(row, 2, QTableWidgetItem(txn.title))
-            self.table.setItem(row, 3, QTableWidgetItem(txn.paid_by.full_name if txn.paid_by else "-"))
-            self.table.setItem(row, 4, QTableWidgetItem(txn.account.name if txn.account else "-"))
-            self.table.setItem(row, 5, QTableWidgetItem(txn.payment_method))
+            member_name = txn.paid_by_member.name if (hasattr(txn, "paid_by_member") and txn.paid_by_member) else "-"
+            self.table.setItem(row, 3, QTableWidgetItem(member_name))
+            acc_name = txn.account.name if (hasattr(txn, "account") and txn.account) else "-"
+            self.table.setItem(row, 4, QTableWidgetItem(acc_name))
+            self.table.setItem(row, 5, QTableWidgetItem(txn.payment_method or "-"))
             self.table.setItem(row, 6, QTableWidgetItem(txn.reference_no or "-"))
 
             amt_item = QTableWidgetItem(format_inr(txn.amount_paise))

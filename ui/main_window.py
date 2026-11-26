@@ -19,7 +19,7 @@ from core.theme_manager import apply_app_theme, dark_palette, light_palette, DAR
 from assets.styles.fintech_theme import FINTECH_DARK_THEME
 from assets.styles.theme import LIGHT_THEME
 from core.authentication import AuthService
-from ui.dashboard.master_dashboard_view import MasterFamilyDashboardView
+from ui.dashboard.web_dashboard_view import WebDashboardView
 from ui.users.users_view import UsersView
 from ui.expenses.expenses_view import ExpensesView
 from ui.income.income_view import IncomeView
@@ -403,8 +403,8 @@ class MainWindow(QMainWindow):
         return top_bar
 
     def init_pages(self):
-        # 0: Master Dashboard (Family and Individual Viewing Modes)
-        self.dashboard_view = MasterFamilyDashboardView()
+        # 0: Master Dashboard (Tailwind CSS + Glassmorphism + Recharts SVG + Lucide Icons)
+        self.dashboard_view = WebDashboardView()
         self.stack.addWidget(self.dashboard_view)
 
         # 1: Daily Expenses
@@ -490,9 +490,13 @@ class MainWindow(QMainWindow):
                 current_page.load_expenses()
             elif hasattr(current_page, "refresh"):
                 current_page.refresh()
+            if hasattr(self, "dashboard_view") and hasattr(self.dashboard_view, "refresh"):
+                self.dashboard_view.refresh()
 
     def switch_page(self, idx: int):
         self.stack.setCurrentIndex(idx)
+        if idx == 0 and hasattr(self, "dashboard_view") and hasattr(self.dashboard_view, "refresh"):
+            self.dashboard_view.refresh()
         titles = [
             "Dashboard", "Daily Expenses", "Other Expenses", "Income Management",
             "Accounts & Cards", "General Ledger", "Net Worth Tracker",

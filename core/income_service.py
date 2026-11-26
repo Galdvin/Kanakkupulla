@@ -19,10 +19,11 @@ class IncomeService:
         amount_paise: int,
         income_date: date,
         account_id: int,
-        received_by_member_id: int,
+        received_by_member_id: Optional[int] = None,
         description: Optional[str] = None,
         payment_mode: str = "Bank Transfer",
-        reference_no: Optional[str] = None
+        reference_no: Optional[str] = None,
+        received_by_id: Optional[int] = None
     ) -> Tuple[bool, str, Optional[FinancialTransaction]]:
         if not AuthService.can_modify_transactions():
             return False, "Viewer role cannot record income", None
@@ -34,6 +35,10 @@ class IncomeService:
         if not source_title:
             return False, "Income source title is required", None
 
+        # Resolve received_by_member_id from either parameter
+        if received_by_member_id is None and received_by_id is not None:
+            received_by_member_id = received_by_id
+
         current_user = AuthService.get_current_user()
         creator_id = current_user.id if current_user else 1
 
@@ -42,6 +47,14 @@ class IncomeService:
             account = db.query(Account).filter_by(id=account_id).first()
             if not account or not account.is_active:
                 return False, "Invalid destination account", None
+
+            # Fallback to default primary family member if not specified
+            if not received_by_member_id:
+                prim_member = db.query(FamilyMember).filter_by(is_primary=True).first() or db.query(FamilyMember).first()
+                if prim_member:
+                    received_by_member_id = prim_member.id
+                else:
+                    return False, "No active family member found to attribute income", None
 
             txn = FinancialTransaction(
                 transaction_type=TransactionType.INCOME.value,
@@ -99,6 +112,8 @@ class IncomeService:
 
             db.commit()
             db.refresh(txn)
+            _ = txn.account.name if txn.account else None
+            _ = txn.paid_by_member.name if txn.paid_by_member else None
             db.expunge(txn)
             return True, "Income recorded successfully", txn
         except Exception as e:

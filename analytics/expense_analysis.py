@@ -139,3 +139,89 @@ class AnalyticsService:
             }
         finally:
             db.close()
+
+    @staticmethod
+    def get_cash_flow_trend(
+        months: int = 6,
+        filter_member_id: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        """Calculates month-by-month Income, Expense, and Savings for trend visualization."""
+        from datetime import timedelta
+        db = SessionLocal()
+        try:
+            today = date.today()
+            trend = []
+            for i in range(months - 1, -1, -1):
+                # Calculate month and year
+                m = today.month - i
+                y = today.year
+                while m <= 0:
+                    m += 12
+                    y -= 1
+
+                m_start = date(y, m, 1)
+                if m == 12:
+                    m_end = date(y + 1, 1, 1) - timedelta(days=1)
+                else:
+                    m_end = date(y, m + 1, 1) - timedelta(days=1)
+
+                q_inc = db.query(FinancialTransaction).filter(
+                    FinancialTransaction.transaction_type == TransactionType.INCOME.value,
+                    FinancialTransaction.is_deleted == False,
+                    FinancialTransaction.transaction_date >= m_start,
+                    FinancialTransaction.transaction_date <= m_end
+                )
+                if filter_member_id:
+                    q_inc = q_inc.filter(FinancialTransaction.paid_by_member_id == filter_member_id)
+                inc_paise = sum(t.amount_paise for t in q_inc.all())
+
+                q_exp = db.query(FinancialTransaction).filter(
+                    FinancialTransaction.transaction_type == TransactionType.EXPENSE.value,
+                    FinancialTransaction.is_deleted == False,
+                    FinancialTransaction.transaction_date >= m_start,
+                    FinancialTransaction.transaction_date <= m_end
+                )
+                if filter_member_id:
+                    q_exp = q_exp.filter(FinancialTransaction.paid_by_member_id == filter_member_id)
+                exp_paise = sum(t.amount_paise for t in q_exp.all())
+
+                trend.append({
+                    "month_label": m_start.strftime("%b %y"),
+                    "month_short": m_start.strftime("%b"),
+                    "income_paise": inc_paise,
+                    "expense_paise": exp_paise,
+                    "savings_paise": inc_paise - exp_paise
+                })
+            return trend
+        finally:
+            db.close()
+
+    @staticmethod
+    def get_recent_activity(
+        limit: int = 5,
+        filter_member_id: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        """Fetches latest transactions with preloaded relations for dashboard activity feed."""
+        db = SessionLocal()
+        try:
+            q = db.query(FinancialTransaction).filter(
+                FinancialTransaction.is_deleted == False
+            )
+            if filter_member_id:
+                q = q.filter(FinancialTransaction.paid_by_member_id == filter_member_id)
+            txns = q.order_by(FinancialTransaction.transaction_date.desc(), FinancialTransaction.id.desc()).limit(limit).all()
+            activity = []
+            for t in txns:
+                activity.append({
+                    "id": t.id,
+                    "date": t.transaction_date,
+                    "title": t.title,
+                    "type": t.transaction_type,
+                    "amount_paise": t.amount_paise,
+                    "category": t.category.name if t.category else "Uncategorized",
+                    "member": t.paid_by_member.name if t.paid_by_member else "Family",
+                    "account": t.account.name if t.account else "Account"
+                })
+            return activity
+        finally:
+            db.close()
