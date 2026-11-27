@@ -136,6 +136,12 @@ class ExpenseEntryDialog(QDialog):
         row5.addLayout(vbox_ref)
         layout.addLayout(row5)
 
+        # Notes / Remarks (Optional)
+        layout.addWidget(QLabel("Notes / Remarks (Optional):"))
+        self.notes_input = QLineEdit()
+        self.notes_input.setPlaceholderText("Optional notes or description")
+        layout.addWidget(self.notes_input)
+
         # Bill Image / Attachment Section
         attach_box = QHBoxLayout()
         self.attach_lbl = QLabel("No bill attached")
@@ -225,7 +231,7 @@ class ExpenseEntryDialog(QDialog):
             idx = self.pm_combo.findText(self.expense.payment_method)
             if idx >= 0:
                 self.pm_combo.setCurrentIndex(idx)
-        if hasattr(self.expense, "description") and self.expense.description:
+        if hasattr(self.expense, "description") and self.expense.description and hasattr(self, "notes_input"):
             self.notes_input.setText(self.expense.description)
         if hasattr(self.expense, "reference_no") and self.expense.reference_no:
             self.ref_input.setText(self.expense.reference_no)
@@ -264,7 +270,7 @@ class ExpenseEntryDialog(QDialog):
         merch = self.merch_input.text().strip() or None
         ref = self.ref_input.text().strip() or None
         event = self.event_input.text().strip() if self.event_input else None
-        notes = self.notes_input.toPlainText().strip() or None
+        notes = self.notes_input.text().strip() or None if hasattr(self, "notes_input") else None
 
         if self.is_edit:
             ok, msg = ExpenseService.update_expense(
@@ -299,7 +305,8 @@ class ExpenseEntryDialog(QDialog):
             expense_kind=self.expense_kind,
             event_name=event,
             merchant=merch,
-            reference_no=ref
+            reference_no=ref,
+            description=notes
         )
 
         if ok and txn:

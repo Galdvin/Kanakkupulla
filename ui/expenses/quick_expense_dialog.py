@@ -1,12 +1,12 @@
 """
 Quick Expense Entry Dialog:
-Ultra-fast expense recording in < 5 seconds with preset amounts, keyboard navigation,
-and instant category + account assignment for both Daily and Occasional/Other expenses.
+Ultra-fast expense recording with preset amounts, keyboard navigation,
+clean 2-column cell display, and instant category + account assignment.
 """
 from datetime import date
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, 
-    QComboBox, QPushButton, QMessageBox, QWidget
+    QComboBox, QPushButton, QMessageBox, QWidget, QFrame
 )
 from PySide6.QtCore import Qt
 from core.expense_service import ExpenseService
@@ -16,46 +16,71 @@ from core.family_service import FamilyService
 from core.financial_utils import inr_to_paise
 from config.constants import ExpenseKind
 
+FIELD_LABEL_STYLE = "font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 2px;"
+
+INPUT_STYLE = """
+    QLineEdit, QComboBox {
+        background-color: #111827;
+        color: #f8fafc;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 13px;
+        min-height: 22px;
+    }
+    QLineEdit:focus, QComboBox:focus {
+        border: 1px solid #14b8a6;
+        background-color: #0b1120;
+    }
+    QComboBox::drop-down {
+        border: none;
+        width: 20px;
+    }
+"""
+
 class QuickExpenseDialog(QDialog):
     def __init__(self, expense_kind: str = ExpenseKind.DAILY.value, parent=None):
         super().__init__(parent)
         self.expense_kind = expense_kind
         is_occasional = (self.expense_kind == ExpenseKind.OCCASIONAL.value)
         self.setWindowTitle(f"⚡ Quick Expense Entry - {'Occasional / Other' if is_occasional else 'Daily'}")
-        self.resize(480, 580)
-        self.setMinimumSize(450, 520)
+        self.resize(540, 560)
+        self.setMinimumSize(500, 520)
+        self.setStyleSheet(INPUT_STYLE)
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setSpacing(10)
-        layout.setContentsMargins(24, 20, 24, 20)
+        root_layout = QVBoxLayout(self)
+        root_layout.setSpacing(12)
+        root_layout.setContentsMargins(24, 20, 24, 20)
 
         # Header
         header_wrap = QWidget()
         header_layout = QVBoxLayout(header_wrap)
-        header_layout.setContentsMargins(0, 0, 0, 4)
+        header_layout.setContentsMargins(0, 0, 0, 2)
         header_layout.setSpacing(2)
 
         header_title = QLabel("⚡ Quick Expense Entry")
-        header_title.setStyleSheet("font-size: 16px; font-weight: 800; color: #2dd4bf;")
+        header_title.setStyleSheet("font-size: 17px; font-weight: 800; color: #2dd4bf;")
         header_layout.addWidget(header_title)
 
         header_sub = QLabel("Record everyday out-of-pocket or occasional expenses in seconds")
-        header_sub.setStyleSheet("font-size: 11px; color: #64748b; font-weight: 500;")
+        header_sub.setStyleSheet("font-size: 12px; color: #64748b; font-weight: 500;")
         header_layout.addWidget(header_sub)
-        layout.addWidget(header_wrap)
+        root_layout.addWidget(header_wrap)
 
-        # Expense Kind Selector Row
-        kind_row = QHBoxLayout()
-        kind_row.setSpacing(8)
-        kind_lbl = QLabel("Expense Type:")
-        kind_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
-        kind_row.addWidget(kind_lbl)
+        # Row 1: Expense Classification (2 Columns)
+        row1 = QHBoxLayout()
+        row1.setSpacing(12)
 
+        col_type = QVBoxLayout()
+        col_type.setSpacing(4)
+        lbl_type = QLabel("Expense Type:")
+        lbl_type.setStyleSheet(FIELD_LABEL_STYLE)
+        col_type.addWidget(lbl_type)
         self.kind_combo = QComboBox()
+        self.kind_combo.setFixedHeight(38)
         self.kind_combo.setCursor(Qt.PointingHandCursor)
-        self.kind_combo.setFixedHeight(34)
         self.kind_combo.addItem("Daily Expense", ExpenseKind.DAILY.value)
         self.kind_combo.addItem("Occasional / Other Expense", ExpenseKind.OCCASIONAL.value)
         if self.expense_kind == ExpenseKind.OCCASIONAL.value:
@@ -63,55 +88,56 @@ class QuickExpenseDialog(QDialog):
         else:
             self.kind_combo.setCurrentIndex(0)
         self.kind_combo.currentIndexChanged.connect(self.on_kind_changed)
-        kind_row.addWidget(self.kind_combo, stretch=1)
-        layout.addLayout(kind_row)
+        col_type.addWidget(self.kind_combo)
+        row1.addLayout(col_type, stretch=1)
 
-        # Optional Event/Occasion input for Occasional expenses
-        self.event_wrap = QWidget()
-        event_layout = QVBoxLayout(self.event_wrap)
-        event_layout.setContentsMargins(0, 0, 0, 0)
-        event_layout.setSpacing(3)
-        event_lbl = QLabel("Event / Occasion / Project (Optional):")
-        event_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
-        event_layout.addWidget(event_lbl)
+        col_event = QVBoxLayout()
+        col_event.setSpacing(4)
+        self.event_lbl = QLabel("Event / Occasion (Optional):")
+        self.event_lbl.setStyleSheet(FIELD_LABEL_STYLE)
+        col_event.addWidget(self.event_lbl)
         self.event_input = QLineEdit()
-        self.event_input.setFixedHeight(36)
-        self.event_input.setPlaceholderText("e.g. Goa Trip, Diwali, Wedding, Renovation")
-        event_layout.addWidget(self.event_input)
-        layout.addWidget(self.event_wrap)
-        self.event_wrap.setVisible(self.expense_kind == ExpenseKind.OCCASIONAL.value)
+        self.event_input.setFixedHeight(38)
+        self.event_input.setPlaceholderText("e.g. Goa Trip, Diwali, Wedding")
+        col_event.addWidget(self.event_input)
+        row1.addLayout(col_event, stretch=1)
 
-        # Amount Entry with Preset Chips
+        root_layout.addLayout(row1)
+
+        # Row 2: Amount Hero Cell
+        amt_wrap = QVBoxLayout()
+        amt_wrap.setSpacing(4)
         amt_lbl = QLabel("Amount (₹) *")
-        amt_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
-        layout.addWidget(amt_lbl)
+        amt_lbl.setStyleSheet(FIELD_LABEL_STYLE)
+        amt_wrap.addWidget(amt_lbl)
 
         self.amount_input = QLineEdit()
         self.amount_input.setPlaceholderText("0.00")
-        self.amount_input.setFixedHeight(44)
+        self.amount_input.setFixedHeight(46)
         self.amount_input.setStyleSheet("""
             QLineEdit {
-                font-size: 20px;
+                font-size: 22px;
                 font-weight: 700;
                 color: #2dd4bf;
                 background-color: #111827;
                 border: 1px solid #334155;
                 border-radius: 8px;
-                padding: 4px 12px;
+                padding: 4px 14px;
             }
             QLineEdit:focus {
                 border: 1px solid #14b8a6;
-                background-color: #0a0f1d;
+                background-color: #0b1120;
             }
         """)
-        layout.addWidget(self.amount_input)
+        amt_wrap.addWidget(self.amount_input)
+        root_layout.addLayout(amt_wrap)
 
-        # Preset amount chips
+        # Row 3: Preset Amount Quick Chips
         chips_layout = QHBoxLayout()
         chips_layout.setSpacing(6)
         presets = [50, 100, 200, 500, 1000, 2000, 5000]
         for p in presets:
-            btn = QPushButton(f"₹{p}")
+            btn = QPushButton(f"₹{p:,}")
             btn.setFixedHeight(30)
             btn.setCursor(Qt.PointingHandCursor)
             btn.setStyleSheet("""
@@ -132,64 +158,95 @@ class QuickExpenseDialog(QDialog):
             """)
             btn.clicked.connect(lambda _, val=p: self.set_amount(val))
             chips_layout.addWidget(btn)
-        layout.addLayout(chips_layout)
+        root_layout.addLayout(chips_layout)
 
-        # Title / Description
+        # Row 4: Title / Merchant Description
+        title_wrap = QVBoxLayout()
+        title_wrap.setSpacing(4)
         title_lbl = QLabel("Title / Merchant *")
-        title_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
-        layout.addWidget(title_lbl)
+        title_lbl.setStyleSheet(FIELD_LABEL_STYLE)
+        title_wrap.addWidget(title_lbl)
 
         self.title_input = QLineEdit()
-        self.title_input.setFixedHeight(36)
-        self.title_input.setPlaceholderText("e.g. Tea, Fuel, Vegetables, Snacks, Hotel, Shopping")
-        layout.addWidget(self.title_input)
+        self.title_input.setFixedHeight(38)
+        self.title_input.setPlaceholderText("e.g. Tea, Fuel, Vegetables, Snacks, Hotel, Hand Loan")
+        title_wrap.addWidget(self.title_input)
+        root_layout.addLayout(title_wrap)
 
-        # Category
-        cat_lbl = QLabel("Category:")
-        cat_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
-        layout.addWidget(cat_lbl)
+        # Row 5: Category & Account (2 Columns)
+        row5 = QHBoxLayout()
+        row5.setSpacing(12)
 
+        col_cat = QVBoxLayout()
+        col_cat.setSpacing(4)
+        cat_lbl = QLabel("Category *")
+        cat_lbl.setStyleSheet(FIELD_LABEL_STYLE)
+        col_cat.addWidget(cat_lbl)
         self.cat_combo = QComboBox()
         self.cat_combo.setCursor(Qt.PointingHandCursor)
-        self.cat_combo.setFixedHeight(36)
+        self.cat_combo.setFixedHeight(38)
         for cat in CategoryService.get_all_categories():
             self.cat_combo.addItem(cat.name, cat.id)
-        layout.addWidget(self.cat_combo)
+        col_cat.addWidget(self.cat_combo)
+        row5.addLayout(col_cat, stretch=1)
 
-        # Paid From Account
+        col_acc = QVBoxLayout()
+        col_acc.setSpacing(4)
         acc_lbl = QLabel("Paid From Account *")
-        acc_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
-        layout.addWidget(acc_lbl)
-
+        acc_lbl.setStyleSheet(FIELD_LABEL_STYLE)
+        col_acc.addWidget(acc_lbl)
         self.acc_combo = QComboBox()
         self.acc_combo.setCursor(Qt.PointingHandCursor)
-        self.acc_combo.setFixedHeight(36)
+        self.acc_combo.setFixedHeight(38)
         for acc in AccountService.get_all_accounts():
             self.acc_combo.addItem(f"{acc.name} ({acc.account_type})", acc.id)
-        layout.addWidget(self.acc_combo)
+        col_acc.addWidget(self.acc_combo)
+        row5.addLayout(col_acc, stretch=1)
 
-        # Family Member (Payer)
+        root_layout.addLayout(row5)
+
+        # Row 6: Paid By & Payment Method (2 Columns)
+        row6 = QHBoxLayout()
+        row6.setSpacing(12)
+
+        col_payer = QVBoxLayout()
+        col_payer.setSpacing(4)
         payer_lbl = QLabel("Paid By *")
-        payer_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #94a3b8;")
-        layout.addWidget(payer_lbl)
-
+        payer_lbl.setStyleSheet(FIELD_LABEL_STYLE)
+        col_payer.addWidget(payer_lbl)
         self.payer_combo = QComboBox()
         self.payer_combo.setCursor(Qt.PointingHandCursor)
-        self.payer_combo.setFixedHeight(36)
+        self.payer_combo.setFixedHeight(38)
         for m in FamilyService.get_all_members():
             self.payer_combo.addItem(f"{m.name} ({m.relation_type})", m.id)
-        layout.addWidget(self.payer_combo)
+        col_payer.addWidget(self.payer_combo)
+        row6.addLayout(col_payer, stretch=1)
 
-        layout.addSpacing(6)
+        col_pm = QVBoxLayout()
+        col_pm.setSpacing(4)
+        pm_lbl = QLabel("Payment Method")
+        pm_lbl.setStyleSheet(FIELD_LABEL_STYLE)
+        col_pm.addWidget(pm_lbl)
+        self.pm_combo = QComboBox()
+        self.pm_combo.setCursor(Qt.PointingHandCursor)
+        self.pm_combo.setFixedHeight(38)
+        self.pm_combo.addItems(["Cash", "UPI", "Debit Card", "Credit Card", "Net Banking", "Wallet", "Other"])
+        col_pm.addWidget(self.pm_combo)
+        row6.addLayout(col_pm, stretch=1)
+
+        root_layout.addLayout(row6)
+
+        # Save Button
+        root_layout.addSpacing(4)
         save_btn = QPushButton("Save Instantly (Enter)")
-        save_btn.setFixedHeight(42)
+        save_btn.setFixedHeight(44)
         save_btn.setCursor(Qt.PointingHandCursor)
         save_btn.setStyleSheet("""
             QPushButton {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0f766e, stop:1 #14b8a6);
                 color: #ffffff;
                 font-weight: 700;
-                font-size: 13px;
+                font-size: 14px;
                 border: 1px solid #2dd4bf;
                 border-radius: 8px;
             }
@@ -201,10 +258,22 @@ class QuickExpenseDialog(QDialog):
         save_btn.clicked.connect(self.save)
         self.amount_input.returnPressed.connect(self.save)
         self.title_input.returnPressed.connect(self.save)
-        layout.addWidget(save_btn)
+        root_layout.addWidget(save_btn)
+
+        # Initial state for event input
+        self.on_kind_changed(self.kind_combo.currentIndex())
 
     def on_kind_changed(self, idx: int):
-        self.event_wrap.setVisible(idx == 1)
+        is_occasional = (idx == 1)
+        self.event_input.setEnabled(is_occasional)
+        if is_occasional:
+            self.event_lbl.setText("Event / Occasion (Optional):")
+            self.event_input.setPlaceholderText("e.g. Goa Trip, Diwali, Wedding")
+            self.event_input.setStyleSheet("background-color: #111827; color: #f8fafc;")
+        else:
+            self.event_lbl.setText("Event / Occasion:")
+            self.event_input.setPlaceholderText("Regular daily living expense")
+            self.event_input.setStyleSheet("background-color: #0f172a; color: #475569;")
 
     def set_amount(self, val: int):
         self.amount_input.setText(str(val))
@@ -238,6 +307,7 @@ class QuickExpenseDialog(QDialog):
 
         cat_id = self.cat_combo.currentData()
         kind = self.kind_combo.currentData() or self.expense_kind
+        pm = self.pm_combo.currentText()
         event = self.event_input.text().strip() if (kind == ExpenseKind.OCCASIONAL.value and hasattr(self, "event_input")) else None
 
         ok, msg, _ = ExpenseService.record_expense(
@@ -248,7 +318,7 @@ class QuickExpenseDialog(QDialog):
             paid_by_member_id=payer_id,
             expense_for_member_id=payer_id,
             category_id=cat_id,
-            payment_method="Cash / UPI",
+            payment_method=pm,
             expense_kind=kind,
             event_name=event
         )

@@ -9,7 +9,7 @@ from datetime import date
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QComboBox, QDateEdit, QPushButton, QMessageBox, QFileDialog,
-    QFrame, QSplitter
+    QFrame, QSplitter, QScrollArea, QGridLayout, QWidget
 )
 from PySide6.QtGui import QPixmap
 from PySide6.QtCore import Qt, QDate
@@ -21,19 +21,42 @@ from core.family_service import FamilyService
 from core.account_service import AccountService
 from core.category_service import CategoryService
 
+
 class SmartReceiptReviewDialog(QDialog):
     def __init__(self, initial_image_path: Optional[Path] = None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Smart Receipt Scanner & Pre-fill")
-        self.setFixedSize(840, 620)
+        self.resize(980, 700)
+        self.setMinimumSize(880, 640)
         self.setStyleSheet("""
-            QDialog { background-color: #0f172a; color: #f8fafc; }
-            QLabel { color: #94a3b8; font-size: 13px; font-weight: 500; }
-            QLineEdit, QComboBox, QDateEdit {
-                background-color: #1e293b; border: 1px solid #334155;
-                border-radius: 6px; padding: 8px 12px; color: #f8fafc; font-size: 13px;
+            QDialog {
+                background-color: #0b1120;
+                color: #f8fafc;
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             }
-            QLineEdit:focus, QComboBox:focus, QDateEdit:focus { border: 1px solid #0ea5e9; }
+            QLineEdit, QComboBox, QDateEdit {
+                background-color: #0f172a;
+                border: 1px solid #334155;
+                border-radius: 6px;
+                padding: 0px 12px;
+                color: #f8fafc;
+                font-size: 13px;
+            }
+            QLineEdit:focus, QComboBox:focus, QDateEdit:focus {
+                border: 1px solid #00d2aa;
+                background-color: #162032;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 24px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #1e293b;
+                color: #f8fafc;
+                selection-background-color: #00d2aa;
+                selection-color: #0b1120;
+                border: 1px solid #334155;
+            }
         """)
 
         self.current_image_path: Optional[Path] = initial_image_path
@@ -45,6 +68,7 @@ class SmartReceiptReviewDialog(QDialog):
         # Header
         top_bar = QHBoxLayout()
         t_box = QVBoxLayout()
+        t_box.setSpacing(4)
         title_lbl = QLabel("Smart Receipt Scanner (OCR)")
         title_lbl.setStyleSheet("font-size: 18px; font-weight: 700; color: #38bdf8;")
         sub_lbl = QLabel("Scan or upload a bill image. Review extracted fields before saving to financial ledger.")
@@ -55,113 +79,194 @@ class SmartReceiptReviewDialog(QDialog):
         top_bar.addStretch()
 
         choose_btn = QPushButton("📁 Select Bill Image")
-        choose_btn.setStyleSheet("background-color: #0284c7; color: white; padding: 8px 14px; border-radius: 6px; font-weight: 600;")
+        choose_btn.setFixedHeight(36)
+        choose_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #0284c7; color: white; padding: 0 16px;
+                border-radius: 6px; font-weight: 600; font-size: 13px; border: none;
+            }
+            QPushButton:hover { background-color: #0369a1; }
+        """)
         choose_btn.clicked.connect(self.choose_file)
         top_bar.addWidget(choose_btn)
         layout.addLayout(top_bar)
 
         # Splitter: Left Preview, Right Form
         splitter = QSplitter(Qt.Horizontal)
-        splitter.setStyleSheet("QSplitter::handle { background-color: #334155; width: 2px; }")
+        splitter.setStyleSheet("""
+            QSplitter::handle {
+                background-color: #1e293b;
+                width: 3px;
+                margin: 0px 4px;
+            }
+        """)
 
         # Left: Image Preview Box
         preview_box = QFrame()
-        preview_box.setStyleSheet("background-color: #1e293b; border-radius: 8px; border: 1px solid #334155;")
+        preview_box.setObjectName("previewBox")
+        preview_box.setStyleSheet("""
+            QFrame#previewBox {
+                background-color: #1e293b;
+                border-radius: 10px;
+                border: 1px solid #334155;
+            }
+        """)
         p_lay = QVBoxLayout(preview_box)
-        p_lay.setAlignment(Qt.AlignCenter)
-        self.image_preview_lbl = QLabel("No Receipt Selected\n\nClick 'Select Bill Image' to upload")
+        p_lay.setContentsMargins(16, 16, 16, 16)
+        p_lay.setSpacing(12)
+
+        prev_header = QLabel("RECEIPT PREVIEW")
+        prev_header.setStyleSheet("color: #94a3b8; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;")
+        p_lay.addWidget(prev_header)
+
+        preview_scroll = QScrollArea()
+        preview_scroll.setWidgetResizable(True)
+        preview_scroll.setFrameShape(QFrame.NoFrame)
+        preview_scroll.setStyleSheet("background-color: #0f172a; border-radius: 8px; border: 1px dashed #334155;")
+
+        self.image_preview_lbl = QLabel("No Receipt Selected\n\nClick 'Select Bill Image' above\nor browse below to scan")
         self.image_preview_lbl.setAlignment(Qt.AlignCenter)
-        self.image_preview_lbl.setStyleSheet("color: #64748b; font-size: 13px;")
-        self.image_preview_lbl.setFixedSize(360, 440)
-        self.image_preview_lbl.setScaledContents(True)
-        p_lay.addWidget(self.image_preview_lbl)
+        self.image_preview_lbl.setStyleSheet("color: #64748b; font-size: 13px; background: transparent; padding: 20px;")
+        self.image_preview_lbl.setMinimumSize(280, 360)
+        preview_scroll.setWidget(self.image_preview_lbl)
+        p_lay.addWidget(preview_scroll, stretch=1)
+
+        browse_btn = QPushButton("📂 Browse / Replace Image")
+        browse_btn.setFixedHeight(36)
+        browse_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #334155; color: #f8fafc; border-radius: 6px;
+                font-weight: 600; font-size: 12px; border: none;
+            }
+            QPushButton:hover { background-color: #475569; }
+        """)
+        browse_btn.clicked.connect(self.choose_file)
+        p_lay.addWidget(browse_btn)
+
         splitter.addWidget(preview_box)
 
-        # Right: Extracted Fields Form
+        # Right: Extracted Fields Form (wrapped in QScrollArea so fields NEVER squash or merge)
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.NoFrame)
+        scroll_area.setStyleSheet("QScrollArea { background-color: transparent; border: none; }")
+
         form_frame = QFrame()
-        form_frame.setStyleSheet("background-color: #1e293b; border-radius: 8px; border: 1px solid #334155; padding: 14px;")
+        form_frame.setObjectName("formFrame")
+        form_frame.setStyleSheet("""
+            QFrame#formFrame {
+                background-color: #1e293b;
+                border-radius: 10px;
+                border: 1px solid #334155;
+            }
+        """)
         f_lay = QVBoxLayout(form_frame)
-        f_lay.setSpacing(10)
+        f_lay.setContentsMargins(18, 18, 18, 18)
+        f_lay.setSpacing(14)
 
-        f_lay.addWidget(QLabel("Merchant / Store Name *"))
+        form_header = QLabel("EXTRACTED RECEIPT DETAILS")
+        form_header.setStyleSheet("color: #38bdf8; font-size: 12px; font-weight: 700; letter-spacing: 0.5px;")
+        f_lay.addWidget(form_header)
+
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(16)
+        grid.setVerticalSpacing(14)
+
+        def make_field_cell(label_text: str, widget: QWidget) -> QWidget:
+            cell = QWidget()
+            c_lay = QVBoxLayout(cell)
+            c_lay.setContentsMargins(0, 0, 0, 0)
+            c_lay.setSpacing(6)
+            lbl = QLabel(label_text)
+            lbl.setStyleSheet("color: #94a3b8; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;")
+            widget.setFixedHeight(38)
+            c_lay.addWidget(lbl)
+            c_lay.addWidget(widget)
+            return cell
+
+        # Merchant Input (Full Width)
         self.merchant_input = QLineEdit()
-        self.merchant_input.setPlaceholderText("e.g. DMart, Shell Station")
-        f_lay.addWidget(self.merchant_input)
+        self.merchant_input.setPlaceholderText("e.g. DMart, Shell Station, Apollo")
+        grid.addWidget(make_field_cell("MERCHANT / STORE NAME *", self.merchant_input), 0, 0, 1, 2)
 
-        row1 = QHBoxLayout()
-        v1 = QVBoxLayout()
-        v1.addWidget(QLabel("Amount (₹) *"))
+        # Row 1: Amount & Date
         self.amount_input = QLineEdit()
-        self.amount_input.setPlaceholderText("e.g. 2500")
-        v1.addWidget(self.amount_input)
-        row1.addLayout(v1)
+        self.amount_input.setPlaceholderText("e.g. 2500.00")
+        grid.addWidget(make_field_cell("AMOUNT (₹) *", self.amount_input), 1, 0)
 
-        v2 = QVBoxLayout()
-        v2.addWidget(QLabel("Bill Date *"))
         self.date_edit = QDateEdit()
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setDate(QDate.currentDate())
-        v2.addWidget(self.date_edit)
-        row1.addLayout(v2)
-        f_lay.addLayout(row1)
+        grid.addWidget(make_field_cell("BILL DATE *", self.date_edit), 1, 1)
 
-        row2 = QHBoxLayout()
-        v3 = QVBoxLayout()
-        v3.addWidget(QLabel("Expense Category *"))
+        # Row 2: Category & Account
         self.cat_combo = QComboBox()
         categories = CategoryService.get_categories_by_type("Expense")
         for c in categories:
             self.cat_combo.addItem(c.name, c.id)
-        v3.addWidget(self.cat_combo)
-        row2.addLayout(v3)
+        grid.addWidget(make_field_cell("EXPENSE CATEGORY *", self.cat_combo), 2, 0)
 
-        v4 = QVBoxLayout()
-        v4.addWidget(QLabel("Payment Account *"))
         self.account_combo = QComboBox()
         accounts = AccountService.get_all_accounts()
         for a in accounts:
             self.account_combo.addItem(f"{a.name}", a.id)
-        v4.addWidget(self.account_combo)
-        row2.addLayout(v4)
-        f_lay.addLayout(row2)
+        grid.addWidget(make_field_cell("PAYMENT ACCOUNT *", self.account_combo), 2, 1)
 
-        row3 = QHBoxLayout()
-        v5 = QVBoxLayout()
-        v5.addWidget(QLabel("Paid By Member *"))
+        # Row 3: Paid By & Beneficiary
         self.payer_combo = QComboBox()
         members = FamilyService.get_all_members()
         for m in members:
             self.payer_combo.addItem(f"👤 {m.name}", m.id)
-        v5.addWidget(self.payer_combo)
-        row3.addLayout(v5)
+        grid.addWidget(make_field_cell("PAID BY MEMBER *", self.payer_combo), 3, 0)
 
-        v6 = QVBoxLayout()
-        v6.addWidget(QLabel("Expense For Member *"))
         self.beneficiary_combo = QComboBox()
         for m in members:
             self.beneficiary_combo.addItem(f"👤 {m.name}", m.id)
-        v6.addWidget(self.beneficiary_combo)
-        row3.addLayout(v6)
-        f_lay.addLayout(row3)
+        grid.addWidget(make_field_cell("EXPENSE FOR MEMBER *", self.beneficiary_combo), 3, 1)
 
-        f_lay.addWidget(QLabel("Payment Method"))
+        # Row 4: Payment Method & Status Card
         self.mode_combo = QComboBox()
         self.mode_combo.addItems(["UPI / QR", "Credit Card", "Debit Card", "Cash", "Net Banking"])
-        f_lay.addWidget(self.mode_combo)
+        grid.addWidget(make_field_cell("PAYMENT METHOD", self.mode_combo), 4, 0)
 
-        # Confidence status
-        self.status_lbl = QLabel("Status: Ready to scan")
-        self.status_lbl.setStyleSheet("color: #38bdf8; font-size: 11px; font-weight: 600;")
-        f_lay.addWidget(self.status_lbl)
+        status_container = QFrame()
+        status_container.setFixedHeight(38)
+        status_container.setStyleSheet("background-color: #0f172a; border: 1px solid #334155; border-radius: 6px;")
+        s_box = QHBoxLayout(status_container)
+        s_box.setContentsMargins(12, 0, 12, 0)
+        self.status_lbl = QLabel("Ready to scan")
+        self.status_lbl.setStyleSheet("color: #94a3b8; font-size: 12px; font-weight: 600;")
+        s_box.addWidget(self.status_lbl)
+        grid.addWidget(make_field_cell("SCANNER STATUS", status_container), 4, 1)
+
+        f_lay.addLayout(grid)
+        f_lay.addStretch(1)
 
         # Buttons
         btn_box = QHBoxLayout()
+        btn_box.setSpacing(12)
+        btn_box.setContentsMargins(0, 10, 0, 0)
+
         cancel_btn = QPushButton("Cancel")
-        cancel_btn.setStyleSheet("background-color: #334155; color: #f8fafc; padding: 8px 16px; border-radius: 6px;")
+        cancel_btn.setFixedHeight(40)
+        cancel_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #334155; color: #f8fafc; font-weight: 600;
+                padding: 0 20px; border-radius: 6px; border: none; font-size: 13px;
+            }
+            QPushButton:hover { background-color: #475569; }
+        """)
         cancel_btn.clicked.connect(self.reject)
 
         save_btn = QPushButton("✓ Confirm & Record Expense")
-        save_btn.setStyleSheet("background-color: #10b981; color: white; font-weight: 600; padding: 8px 18px; border-radius: 6px;")
+        save_btn.setFixedHeight(40)
+        save_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #00d2aa; color: #0b1120; font-weight: 700;
+                padding: 0 24px; border-radius: 6px; border: none; font-size: 13px;
+            }
+            QPushButton:hover { background-color: #20e3b2; }
+        """)
         save_btn.clicked.connect(self.save_and_attach)
 
         btn_box.addStretch()
@@ -169,9 +274,12 @@ class SmartReceiptReviewDialog(QDialog):
         btn_box.addWidget(save_btn)
         f_lay.addLayout(btn_box)
 
-        splitter.addWidget(form_frame)
-        splitter.setStretchFactor(0, 4)
-        splitter.setStretchFactor(1, 6)
+        scroll_area.setWidget(form_frame)
+        splitter.addWidget(scroll_area)
+
+        splitter.setSizes([380, 540])
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
         layout.addWidget(splitter)
 
         if self.current_image_path:
@@ -191,7 +299,8 @@ class SmartReceiptReviewDialog(QDialog):
         # 1. Show preview
         pix = QPixmap(str(p))
         if not pix.isNull():
-            self.image_preview_lbl.setPixmap(pix.scaled(340, 420, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            self.image_preview_lbl.setStyleSheet("background: transparent; padding: 10px;")
+            self.image_preview_lbl.setPixmap(pix.scaled(340, 440, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
             self.image_preview_lbl.setText(f"Loaded: {p.name}")
 
@@ -212,7 +321,8 @@ class SmartReceiptReviewDialog(QDialog):
                 break
 
         conf = int(parsed["confidence_score"] * 100)
-        self.status_lbl.setText(f"OCR Confidence: {conf}%  |  Detected: {parsed['detected_merchant']}")
+        self.status_lbl.setText(f"OCR Match: {conf}% confidence")
+        self.status_lbl.setStyleSheet("color: #10b981; font-size: 12px; font-weight: 600;")
 
     def save_and_attach(self):
         merchant = self.merchant_input.text().strip()

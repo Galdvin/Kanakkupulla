@@ -15,7 +15,10 @@ ASSETS_DIR = BASE_DIR / "assets"
 for d in [DATA_DIR, LOGS_DIR, BACKUPS_DIR, ATTACHMENTS_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
-DB_PATH = DATA_DIR / "kanakkupulla.db"
+if os.environ.get("TESTING") == "1":
+    DB_PATH = DATA_DIR / "test_kanakkupulla.db"
+else:
+    DB_PATH = DATA_DIR / "kanakkupulla.db"
 DB_URL = f"sqlite:///{DB_PATH.as_posix()}"
 
 APP_NAME = "Kanakkupulla"

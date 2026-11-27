@@ -1,7 +1,10 @@
 """
 Pytest Fixtures and Session Configuration:
-Drops and re-creates all SQLite tables before each test for absolute isolation.
+Drops and re-creates all SQLite tables before each test on isolated test database.
 """
+import os
+os.environ["TESTING"] = "1"
+
 import pytest
 from database.connection import Base, engine, SessionLocal
 from database.seed import seed_database
@@ -11,6 +14,7 @@ from sqlalchemy import text
 
 @pytest.fixture(autouse=True)
 def clean_db():
+    assert "test" in str(engine.url), f"CRITICAL ABORT: Refusing to clean non-test database: {engine.url}"
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
