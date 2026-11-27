@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, 
     QGridLayout, QComboBox, QPushButton
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from analytics.heatmap_service import HeatmapService
 from core.financial_utils import format_inr
 
@@ -43,6 +43,10 @@ class HeatmapView(QWidget):
         header.addLayout(title_box)
         header.addStretch()
 
+        self.live_badge = QLabel("● Live Auto-Refresh (10s)")
+        self.live_badge.setStyleSheet("color: #10b981; font-size: 12px; font-weight: 600; padding-right: 12px;")
+        header.addWidget(self.live_badge)
+
         # Month Selector
         self.month_combo = QComboBox()
         self.month_combo.addItems([
@@ -57,6 +61,11 @@ class HeatmapView(QWidget):
         refresh_btn.clicked.connect(self.load_data)
         header.addWidget(refresh_btn)
         root.addLayout(header)
+
+        # Periodic Auto-Refresh Timer (Every 10 seconds)
+        self.auto_timer = QTimer(self)
+        self.auto_timer.timeout.connect(self.load_data)
+        self.auto_timer.start(10000)
 
         # Legend Bar
         legend = QHBoxLayout()
@@ -88,6 +97,13 @@ class HeatmapView(QWidget):
 
         root.addWidget(grid_frame)
         root.addStretch()
+
+    def refresh(self):
+        self.load_data()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.load_data()
 
     def load_data(self):
         month = self.month_combo.currentIndex() + 1

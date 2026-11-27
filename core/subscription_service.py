@@ -95,3 +95,39 @@ class SubscriptionService:
             return False, str(e)
         finally:
             db.close()
+
+    @staticmethod
+    def delete_subscription(sub_id: int) -> Tuple[bool, str]:
+        from core.recurring_service import RecurringService
+        return RecurringService.delete_rule(sub_id)
+
+    @staticmethod
+    def update_subscription(
+        sub_id: int,
+        title: str,
+        amount_paise: int,
+        frequency: str,
+        start_date: date,
+        account_id: int,
+        member_id: int,
+        category_id: int
+    ) -> Tuple[bool, str]:
+        db = SessionLocal()
+        try:
+            rule = db.query(RecurringRule).filter_by(id=sub_id).first()
+            if not rule:
+                return False, "Subscription not found"
+            rule.title = title.strip()
+            rule.amount_paise = amount_paise
+            rule.frequency = frequency
+            rule.start_date = start_date
+            rule.account_id = account_id
+            rule.paid_by_member_id = member_id
+            rule.category_id = category_id
+            db.commit()
+            return True, "Subscription updated successfully"
+        except Exception as e:
+            db.rollback()
+            return False, str(e)
+        finally:
+            db.close()

@@ -149,6 +149,11 @@ class UsersView(QWidget):
         self.edit_btn = QPushButton("Edit Selected User")
         self.edit_btn.clicked.connect(self.open_edit_dialog)
         actions_bar.addWidget(self.edit_btn)
+
+        self.del_btn = QPushButton("Delete Selected User")
+        self.del_btn.setStyleSheet("color: #ef4444; border: 1px solid #ef4444; padding: 6px 14px; border-radius: 6px;")
+        self.del_btn.clicked.connect(self.delete_selected)
+        actions_bar.addWidget(self.del_btn)
         actions_bar.addStretch()
 
         refresh_btn = QPushButton("Refresh")
@@ -185,3 +190,27 @@ class UsersView(QWidget):
         dlg = UserEditDialog(user=user, parent=self)
         if dlg.exec():
             self.load_users()
+
+    def delete_selected(self):
+        curr_row = self.table.currentRow()
+        if curr_row < 0:
+            QMessageBox.information(self, "Selection", "Please select a user to delete.")
+            return
+        user_item = self.table.item(curr_row, 0)
+        user = user_item.data(Qt.UserRole)
+        if user.id == 1:
+            QMessageBox.warning(self, "Forbidden", "Cannot delete or deactivate the primary administrator.")
+            return
+        confirm = QMessageBox.question(
+            self,
+            "Confirm Delete",
+            f"Are you sure you want to deactivate/delete user '{user.full_name}'?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if confirm == QMessageBox.Yes:
+            ok, msg = UserService.delete_user(user.id)
+            if ok:
+                QMessageBox.information(self, "Success", "User deactivated successfully.")
+                self.load_users()
+            else:
+                QMessageBox.critical(self, "Error", msg)

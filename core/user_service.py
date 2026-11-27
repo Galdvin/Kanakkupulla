@@ -127,3 +127,34 @@ class UserService:
             return False, f"Error: {str(e)}"
         finally:
             db.close()
+
+    @staticmethod
+    def delete_user(user_id: int) -> Tuple[bool, str]:
+        current = AuthService.get_current_user()
+        if not AuthService.is_admin():
+            return False, "Unauthorized to delete users"
+        if current and current.id == user_id:
+            return False, "Cannot delete your own active administrator account"
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter_by(id=user_id).first()
+            if not user:
+                return False, "User not found"
+            user.status = "disabled"
+            db.commit()
+
+            log = AuditLog(
+                user_id=current.id if current else None,
+                action="USER_DISABLED",
+                entity_name="USER",
+                entity_id=user.id,
+                details=f"Disabled user account {user.username}"
+            )
+            db.add(log)
+            db.commit()
+            return True, "User deactivated successfully"
+        except Exception as e:
+            db.rollback()
+            return False, f"Error: {str(e)}"
+        finally:
+            db.close()

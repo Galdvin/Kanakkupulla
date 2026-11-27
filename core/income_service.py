@@ -152,3 +152,133 @@ class IncomeService:
             return results, total_count
         finally:
             db.close()
+
+    @staticmethod
+    def get_income_by_id(income_id: int) -> Optional[FinancialTransaction]:
+        db = SessionLocal()
+        try:
+            txn = db.query(FinancialTransaction).filter_by(id=income_id, is_deleted=False).first()
+            if txn:
+                _ = txn.account.name if txn.account else None
+                _ = txn.paid_by_member.name if txn.paid_by_member else None
+                db.expunge(txn)
+            return txn
+        finally:
+            db.close()
+
+    @staticmethod
+    def delete_income(income_id: int) -> Tuple[bool, str]:
+        if not AuthService.can_modify_transactions():
+            return False, "Unauthorized action"
+
+        current_user = AuthService.get_current_user()
+        db = SessionLocal()
+        try:
+            txn = db.query(FinancialTransaction).filter_by(id=income_id, is_deleted=False).first()
+            if not txn or txn.transaction_type != TransactionType.INCOME.value:
+                return False, "Income transaction not found"
+
+            # Reverse account balance (subtract income)
+            account = db.query(Account).filter_by(id=txn.account_id).first()
+            if account:
+                account.current_balance_paise -= txn.amount_paise
+
+            # Reverse ledger entries
+            reversal_credit = LedgerEntry(
+                transaction_id=txn.id,
+                account_id=txn.account_id,
+                entry_type="CREDIT",
+                amount_paise=txn.amount_paise,
+                entry_date=date.today(),
+                description=f"REVERSAL: Cancellation of Income {txn.title}"
+            )
+            reversal_debit = LedgerEntry(
+                transaction_id=txn.id,
+                account_id=txn.account_id,
+                entry_type="DEBIT",
+                amount_paise=txn.amount_paise,
+                entry_date=date.today(),
+                description=f"REVERSAL: Cancellation of Income {txn.title}"
+            )
+            db.add(reversal_credit)
+            db.add(reversal_debit)
+
+            txn.is_deleted = True
+            txn.last_modified_by_id = current_user.id if current_user else None
+
+            log = AuditLog(
+                user_id=current_user.id if current_user else None,
+                action="INCOME_DELETED",
+                entity_name="TRANSACTION",
+                entity_id=txn.id,
+                details=f"Deleted income ID {txn.id} ({txn.title})"
+            )
+            db.add(log)
+            db.commit()
+            return True, "Income deleted successfully"
+        except Exception as e:
+            db.rollback()
+            return False, str(e)
+        finally:
+            db.close()
+
+    @staticmethod
+    def update_income(
+        income_id: int,
+        source_title: str,
+        amount_paise: int,
+        income_date: date,
+        account_id: int,
+        received_by_member_id: int,
+        payment_mode: str = "Bank Transfer",
+        reference_no: Optional[str] = None
+    ) -> Tuple[bool, str]:
+        if not AuthService.can_modify_transactions():
+            return False, "Unauthorized action"
+
+        current_user = AuthService.get_current_user()
+        db = SessionLocal()
+        try:
+            txn = db.query(FinancialTransaction).filter_by(id=income_id, is_deleted=False).first()
+            if not txn:
+                return False, "Income transaction not found"
+
+            old_amount = txn.amount_paise
+            old_account_id = txn.account_id
+
+            # Revert old balance
+            old_acc = db.query(Account).filter_by(id=old_account_id).first()
+            if old_acc:
+                old_acc.current_balance_paise -= old_amount
+
+            # Apply new balance
+            new_acc = db.query(Account).filter_by(id=account_id).first()
+            if not new_acc:
+                return False, "Destination account not found"
+            new_acc.current_balance_paise += amount_paise
+
+            # Update txn
+            txn.title = source_title.strip()
+            txn.amount_paise = amount_paise
+            txn.transaction_date = income_date
+            txn.account_id = account_id
+            txn.paid_by_member_id = received_by_member_id
+            txn.expense_for_member_id = received_by_member_id
+            txn.payment_method = payment_mode
+            txn.reference_no = reference_no.strip() if reference_no else None
+            txn.last_modified_by_id = current_user.id if current_user else None
+
+            # Update ledger
+            for entry in txn.ledger_entries:
+                entry.amount_paise = amount_paise
+                entry.entry_date = income_date
+                if entry.entry_type == "DEBIT":
+                    entry.account_id = account_id
+
+            db.commit()
+            return True, "Income updated successfully"
+        except Exception as e:
+            db.rollback()
+            return False, str(e)
+        finally:
+            db.close()

@@ -18,14 +18,20 @@ from pathlib import Path
 from PySide6.QtWidgets import QFileDialog
 
 class ExpenseEntryDialog(QDialog):
-    def __init__(self, expense_kind: str = ExpenseKind.DAILY.value, parent=None):
+    def __init__(self, expense_kind: str = ExpenseKind.DAILY.value, expense=None, parent=None):
         super().__init__(parent)
         self.expense_kind = expense_kind
+        self.expense = expense
+        self.is_edit = expense is not None
         self.selected_attachment_path = None
-        self.setWindowTitle(f"Add {'Occasional Expense' if expense_kind == ExpenseKind.OCCASIONAL.value else 'Daily Expense'}")
+        action_word = "Edit" if self.is_edit else "Add"
+        kind_name = "Occasional Expense" if expense_kind == ExpenseKind.OCCASIONAL.value else "Daily Expense"
+        self.setWindowTitle(f"{action_word} {kind_name}")
         self.resize(540, 680)
         self.setMinimumSize(480, 580)
         self.init_ui()
+        if self.is_edit:
+            self.populate_existing_data()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -189,6 +195,41 @@ class ExpenseEntryDialog(QDialog):
             self.selected_attachment_path = Path(file_path)
             self.attach_lbl.setText(f"Attached: {self.selected_attachment_path.name}")
 
+    def populate_existing_data(self):
+        if not self.expense:
+            return
+        self.title_input.setText(self.expense.title or "")
+        self.amount_input.setText(f"{self.expense.amount_paise / 100:.2f}")
+        if self.expense.transaction_date:
+            d = self.expense.transaction_date
+            self.date_edit.setDate(QDate(d.year, d.month, d.day))
+        if self.event_input and hasattr(self.expense, "event_name") and self.expense.event_name:
+            self.event_input.setText(self.expense.event_name)
+        if hasattr(self.expense, "category_id") and self.expense.category_id:
+            idx = self.category_combo.findData(self.expense.category_id)
+            if idx >= 0:
+                self.category_combo.setCurrentIndex(idx)
+        if hasattr(self.expense, "account_id") and self.expense.account_id:
+            idx = self.account_combo.findData(self.expense.account_id)
+            if idx >= 0:
+                self.account_combo.setCurrentIndex(idx)
+        if hasattr(self.expense, "paid_by_member_id") and self.expense.paid_by_member_id:
+            idx = self.paid_by_combo.findData(self.expense.paid_by_member_id)
+            if idx >= 0:
+                self.paid_by_combo.setCurrentIndex(idx)
+        if hasattr(self.expense, "expense_for_member_id") and self.expense.expense_for_member_id:
+            idx = self.expense_for_combo.findData(self.expense.expense_for_member_id)
+            if idx >= 0:
+                self.expense_for_combo.setCurrentIndex(idx)
+        if hasattr(self.expense, "payment_method") and self.expense.payment_method:
+            idx = self.pm_combo.findText(self.expense.payment_method)
+            if idx >= 0:
+                self.pm_combo.setCurrentIndex(idx)
+        if hasattr(self.expense, "description") and self.expense.description:
+            self.notes_input.setText(self.expense.description)
+        if hasattr(self.expense, "reference_no") and self.expense.reference_no:
+            self.ref_input.setText(self.expense.reference_no)
+
     def save(self):
         title = self.title_input.text().strip()
         amt_text = self.amount_input.text().strip()
@@ -223,6 +264,27 @@ class ExpenseEntryDialog(QDialog):
         merch = self.merch_input.text().strip() or None
         ref = self.ref_input.text().strip() or None
         event = self.event_input.text().strip() if self.event_input else None
+        notes = self.notes_input.toPlainText().strip() or None
+
+        if self.is_edit:
+            ok, msg = ExpenseService.update_expense(
+                expense_id=self.expense.id,
+                title=title,
+                amount_paise=amt_paise,
+                transaction_date=txn_date,
+                category_id=cat_id,
+                account_id=account_id,
+                paid_by_member_id=paid_by_id,
+                expense_for_member_id=expense_for_id,
+                payment_method=pm,
+                event_name=event,
+                notes=notes
+            )
+            if ok:
+                self.accept()
+            else:
+                QMessageBox.critical(self, "Error", msg)
+            return
 
         ok, msg, txn = ExpenseService.record_expense(
             title=title,

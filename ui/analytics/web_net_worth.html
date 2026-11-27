@@ -126,6 +126,40 @@
 
     .w-full { width: 100%; }
     .h-full { height: 100%; }
+    .w-3 { width: 0.75rem; }
+    .h-3 { height: 0.75rem; }
+    .w-8 { width: 2rem; }
+    .h-8 { height: 2rem; }
+
+    /* Positioning */
+    .relative { position: relative; }
+    .absolute { position: absolute; }
+    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+    .pointer-events-none { pointer-events: none; }
+    .cursor-pointer { cursor: pointer; }
+    .overflow-hidden { overflow: hidden; }
+    .overflow-visible { overflow: visible; }
+    .overflow-y-auto { overflow-y: auto; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Typography */
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .text-left { text-align: left; }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .uppercase { text-transform: uppercase; }
+
+    /* Borders */
+    .border { border-width: 1px; }
+    .border-t { border-top-width: 1px; }
+    .border-b { border-bottom-width: 1px; }
+    .border-slate-800 { border-color: #1e293b; }
+
+    /* Spacing additions */
+    .pt-3 { padding-top: 0.75rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-3 { margin-top: 0.75rem; }
 
     /* Glassmorphic Components */
     .glass-card {
@@ -458,11 +492,11 @@
 
       <div class="flex items-center gap-6 mb-4">
         <!-- SVG Donut -->
-        <div class="relative flex-shrink-0" style="width: 130px; height: 130px;">
+        <div class="relative flex-shrink-0" style="position: relative; width: 130px; height: 130px;">
           <svg id="donut-assets" width="130" height="130" viewBox="0 0 100 100"></svg>
-          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span class="text-xs font-bold text-slate-400">ASSETS</span>
-            <span class="text-xs font-extrabold text-slate-100" id="donut-assets-pct">100%</span>
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
+            <span class="text-xs font-bold text-slate-400" style="font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 0.05em; line-height: 1;">ASSETS</span>
+            <span class="text-xs font-extrabold text-slate-100" style="font-size: 13px; font-weight: 800; color: #f1f5f9; line-height: 1.2; margin-top: 3px;" id="donut-assets-pct">100%</span>
           </div>
         </div>
         <!-- Donut Legend & Items -->
@@ -496,11 +530,11 @@
 
       <div class="flex items-center gap-6 mb-4">
         <!-- SVG Donut -->
-        <div class="relative flex-shrink-0" style="width: 130px; height: 130px;">
+        <div class="relative flex-shrink-0" style="position: relative; width: 130px; height: 130px;">
           <svg id="donut-liab" width="130" height="130" viewBox="0 0 100 100"></svg>
-          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span class="text-xs font-bold text-slate-400">DEBT</span>
-            <span class="text-xs font-extrabold text-slate-100" id="donut-liab-pct">0%</span>
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
+            <span class="text-xs font-bold text-slate-400" style="font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 0.05em; line-height: 1;">DEBT</span>
+            <span class="text-xs font-extrabold text-slate-100" style="font-size: 13px; font-weight: 800; color: #f1f5f9; line-height: 1.2; margin-top: 3px;" id="donut-liab-pct">0%</span>
           </div>
         </div>
         <!-- Donut Legend & Items -->

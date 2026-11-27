@@ -17,12 +17,16 @@ from config.constants import DEFAULT_INCOME_SOURCES
 from ui.table_helper import configure_fintech_table, INCOME_WIDTHS
 
 class IncomeEntryDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, income=None, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Record Income")
+        self.income = income
+        self.is_edit = income is not None
+        self.setWindowTitle("Edit Income" if self.is_edit else "Record Income")
         self.resize(500, 560)
         self.setMinimumSize(460, 500)
         self.init_ui()
+        if self.is_edit:
+            self.populate_existing_data()
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -118,6 +122,38 @@ class IncomeEntryDialog(QDialog):
         self.save_btn.clicked.connect(self.save)
         layout.addWidget(self.save_btn)
 
+    def populate_existing_data(self):
+        if not self.income:
+            return
+        idx = self.source_combo.findText(self.income.title)
+        if idx >= 0:
+            self.source_combo.setCurrentIndex(idx)
+        else:
+            self.source_combo.setEditText(self.income.title or "")
+
+        self.amount_input.setText(f"{self.income.amount_paise / 100:.2f}")
+        if self.income.transaction_date:
+            d = self.income.transaction_date
+            self.date_edit.setDate(QDate(d.year, d.month, d.day))
+
+        if hasattr(self.income, "account_id") and self.income.account_id:
+            idx = self.account_combo.findData(self.income.account_id)
+            if idx >= 0:
+                self.account_combo.setCurrentIndex(idx)
+
+        if hasattr(self.income, "paid_by_member_id") and self.income.paid_by_member_id:
+            idx = self.user_combo.findData(self.income.paid_by_member_id)
+            if idx >= 0:
+                self.user_combo.setCurrentIndex(idx)
+
+        if hasattr(self.income, "payment_method") and self.income.payment_method:
+            idx = self.mode_combo.findText(self.income.payment_method)
+            if idx >= 0:
+                self.mode_combo.setCurrentIndex(idx)
+
+        if hasattr(self.income, "reference_no") and self.income.reference_no:
+            self.ref_input.setText(self.income.reference_no)
+
     def save(self):
         source = self.source_combo.currentText().strip()
         amt_text = self.amount_input.text().strip()
@@ -146,6 +182,23 @@ class IncomeEntryDialog(QDialog):
 
         if not received_by_id:
             QMessageBox.warning(self, "Validation", "Please select an earner (family member)")
+            return
+
+        if self.is_edit:
+            ok, msg = IncomeService.update_income(
+                income_id=self.income.id,
+                source_title=source,
+                amount_paise=amt_paise,
+                income_date=inc_date,
+                account_id=account_id,
+                received_by_member_id=received_by_id,
+                payment_mode=mode,
+                reference_no=ref
+            )
+            if ok:
+                self.accept()
+            else:
+                QMessageBox.critical(self, "Error", msg)
             return
 
         ok, msg, _ = IncomeService.record_income(
@@ -214,13 +267,23 @@ class IncomeView(QWidget):
         self.table.setHorizontalHeaderLabels(headers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.doubleClicked.connect(self.open_edit_dialog)
         configure_fintech_table(self.table, stretch_col=2, col_widths=INCOME_WIDTHS)
         layout.addWidget(self.table)
 
         # Footer
         footer = QHBoxLayout()
+        edit_btn = QPushButton("Edit Selected")
+        edit_btn.clicked.connect(self.open_edit_dialog)
+        footer.addWidget(edit_btn)
+
+        del_btn = QPushButton("Delete Selected")
+        del_btn.setProperty("class", "DangerBtn")
+        del_btn.clicked.connect(self.delete_selected)
+        footer.addWidget(del_btn)
+
         self.total_lbl = QLabel("Total Income: ₹0.00")
-        self.total_lbl.setStyleSheet("font-size: 16px; font-weight: 700; color: #10b981;")
+        self.total_lbl.setStyleSheet("font-size: 16px; font-weight: 700; color: #10b981; padding-left: 15px;")
         footer.addWidget(self.total_lbl)
         footer.addStretch()
 
@@ -236,7 +299,9 @@ class IncomeView(QWidget):
 
         for row, txn in enumerate(incomes):
             total_paise += txn.amount_paise
-            self.table.setItem(row, 0, QTableWidgetItem(str(txn.id)))
+            id_item = QTableWidgetItem(str(txn.id))
+            id_item.setData(Qt.UserRole, txn.id)
+            self.table.setItem(row, 0, id_item)
             self.table.setItem(row, 1, QTableWidgetItem(format_date(txn.transaction_date)))
             self.table.setItem(row, 2, QTableWidgetItem(txn.title))
             member_name = txn.paid_by_member.name if (hasattr(txn, "paid_by_member") and txn.paid_by_member) else "-"
@@ -257,3 +322,37 @@ class IncomeView(QWidget):
         dlg = IncomeEntryDialog(parent=self)
         if dlg.exec():
             self.load_income()
+
+    def open_edit_dialog(self):
+        curr_row = self.table.currentRow()
+        if curr_row < 0:
+            QMessageBox.information(self, "Selection", "Please select an income record to edit.")
+            return
+
+        txn_id = self.table.item(curr_row, 0).data(Qt.UserRole)
+        txn = IncomeService.get_income_by_id(txn_id)
+        if not txn:
+            QMessageBox.warning(self, "Not Found", "Selected income record could not be loaded.")
+            return
+
+        dlg = IncomeEntryDialog(income=txn, parent=self)
+        if dlg.exec():
+            self.load_income()
+
+    def delete_selected(self):
+        curr_row = self.table.currentRow()
+        if curr_row < 0:
+            QMessageBox.information(self, "Selection", "Please select an income record to delete.")
+            return
+
+        txn_id = self.table.item(curr_row, 0).data(Qt.UserRole)
+        reply = QMessageBox.question(
+            self, "Confirm Delete", "Are you sure you want to delete this income? Credited account balance will be reverted.",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+        if reply == QMessageBox.Yes:
+            ok, msg = IncomeService.delete_income(txn_id)
+            if ok:
+                self.load_income()
+            else:
+                QMessageBox.critical(self, "Error", msg)

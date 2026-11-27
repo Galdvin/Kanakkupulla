@@ -225,3 +225,86 @@ class ExpenseService:
             return False, str(e)
         finally:
             db.close()
+
+    @staticmethod
+    def get_expense_by_id(expense_id: int) -> Optional[FinancialTransaction]:
+        db = SessionLocal()
+        try:
+            txn = db.query(FinancialTransaction).filter_by(id=expense_id, is_deleted=False).first()
+            if txn:
+                _ = txn.category.name if txn.category else None
+                _ = txn.account.name if txn.account else None
+                _ = txn.paid_by_member.name if txn.paid_by_member else None
+                _ = txn.expense_for_member.name if txn.expense_for_member else None
+                db.expunge(txn)
+            return txn
+        finally:
+            db.close()
+
+    @staticmethod
+    def update_expense(
+        expense_id: int,
+        title: str,
+        amount_paise: int,
+        transaction_date: date,
+        category_id: int,
+        account_id: int,
+        paid_by_member_id: int,
+        expense_for_member_id: int,
+        payment_method: str = "UPI",
+        event_name: Optional[str] = None,
+        notes: Optional[str] = None
+    ) -> Tuple[bool, str]:
+        if not AuthService.can_modify_transactions():
+            return False, "Unauthorized action"
+
+        current_user = AuthService.get_current_user()
+        db = SessionLocal()
+        try:
+            txn = db.query(FinancialTransaction).filter_by(id=expense_id, is_deleted=False).first()
+            if not txn:
+                return False, "Expense transaction not found"
+
+            old_amount = txn.amount_paise
+            old_account_id = txn.account_id
+
+            # 1. Revert previous account balance impact
+            old_account = db.query(Account).filter_by(id=old_account_id).first()
+            if old_account:
+                old_account.current_balance_paise += old_amount
+
+            # 2. Apply new account balance impact
+            new_account = db.query(Account).filter_by(id=account_id).first()
+            if not new_account:
+                return False, "Selected account not found"
+            new_account.current_balance_paise -= amount_paise
+
+            # 3. Update transaction record
+            txn.title = title.strip()
+            txn.amount_paise = amount_paise
+            txn.transaction_date = transaction_date
+            txn.category_id = category_id
+            txn.account_id = account_id
+            txn.paid_by_member_id = paid_by_member_id
+            txn.expense_for_member_id = expense_for_member_id
+            txn.payment_method = payment_method
+            if event_name is not None:
+                txn.event_name = event_name.strip() if event_name else None
+            if notes is not None:
+                txn.description = notes.strip() if notes else None
+            txn.last_modified_by_id = current_user.id if current_user else None
+
+            # 4. Update ledger entries
+            for entry in txn.ledger_entries:
+                entry.amount_paise = amount_paise
+                entry.entry_date = transaction_date
+                if entry.entry_type == "CREDIT":
+                    entry.account_id = account_id
+
+            db.commit()
+            return True, "Expense updated successfully"
+        except Exception as e:
+            db.rollback()
+            return False, str(e)
+        finally:
+            db.close()

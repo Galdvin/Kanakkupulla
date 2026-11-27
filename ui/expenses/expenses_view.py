@@ -109,6 +109,7 @@ class ExpensesView(QWidget):
         self.table.setHorizontalHeaderLabels(headers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.doubleClicked.connect(self.open_edit_dialog)
 
         widths = EXPENSES_OCCASIONAL_WIDTHS if is_occasional else EXPENSES_DAILY_WIDTHS
         configure_fintech_table(self.table, stretch_col=2, col_widths=widths)
@@ -116,6 +117,10 @@ class ExpensesView(QWidget):
 
         # 4. Action buttons bar
         actions_bar = QHBoxLayout()
+        edit_btn = QPushButton("Edit Selected")
+        edit_btn.clicked.connect(self.open_edit_dialog)
+        actions_bar.addWidget(edit_btn)
+
         delete_btn = QPushButton("Delete Selected")
         delete_btn.setProperty("class", "DangerBtn")
         delete_btn.clicked.connect(self.delete_selected)
@@ -200,6 +205,22 @@ class ExpensesView(QWidget):
 
     def open_add_dialog(self):
         dlg = ExpenseEntryDialog(expense_kind=self.expense_kind, parent=self)
+        if dlg.exec():
+            self.load_expenses()
+
+    def open_edit_dialog(self):
+        curr_row = self.table.currentRow()
+        if curr_row < 0:
+            QMessageBox.information(self, "Selection", "Please select an expense to edit.")
+            return
+
+        txn_id = self.table.item(curr_row, 0).data(Qt.UserRole)
+        txn = ExpenseService.get_expense_by_id(txn_id)
+        if not txn:
+            QMessageBox.warning(self, "Not Found", "Selected expense record could not be loaded.")
+            return
+
+        dlg = ExpenseEntryDialog(expense_kind=self.expense_kind, expense=txn, parent=self)
         if dlg.exec():
             self.load_expenses()
 

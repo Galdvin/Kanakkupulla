@@ -14,11 +14,21 @@ from config.constants import AccountType
 from ui.table_helper import configure_fintech_table, ACCOUNTS_WIDTHS
 
 class AccountCreateDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, account=None, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Add Bank Account / Card / Wallet")
+        self.account = account
+        self.is_edit = account is not None
+        self.setWindowTitle("Edit Account / Card" if self.is_edit else "Add Bank Account / Card / Wallet")
         self.setFixedSize(400, 380)
         self.init_ui()
+        if self.is_edit:
+            self.name_input.setText(self.account.name or "")
+            idx = self.type_combo.findText(self.account.account_type)
+            if idx >= 0:
+                self.type_combo.setCurrentIndex(idx)
+            self.bal_input.setText(f"{self.account.opening_balance_paise / 100:.2f}")
+            self.bal_input.setEnabled(False) # Opening balance fixed after creation
+            self.bank_input.setText(self.account.institution_name or "")
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -73,11 +83,26 @@ class AccountCreateDialog(QDialog):
             QMessageBox.warning(self, "Validation", "Invalid opening balance")
             return
 
+        bank_name = self.bank_input.text().strip() or None
+
+        if self.is_edit:
+            ok, msg = AccountService.update_account(
+                account_id=self.account.id,
+                name=name,
+                account_type=acc_type,
+                institution_name=bank_name
+            )
+            if ok:
+                self.accept()
+            else:
+                QMessageBox.critical(self, "Error", msg)
+            return
+
         ok, msg, _ = AccountService.create_account(
             name=name,
             account_type=acc_type,
             opening_balance_paise=bal_paise,
-            institution_name=self.bank_input.text().strip() or None
+            institution_name=bank_name
         )
         if ok:
             self.accept()
@@ -200,13 +225,23 @@ class AccountsView(QWidget):
         self.table.setHorizontalHeaderLabels(headers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.doubleClicked.connect(self.open_edit_dialog)
         configure_fintech_table(self.table, stretch_col=1, col_widths=ACCOUNTS_WIDTHS)
         layout.addWidget(self.table)
 
-        # Total net liquid balance
+        # Footer
         footer = QHBoxLayout()
+        edit_btn = QPushButton("Edit Selected")
+        edit_btn.clicked.connect(self.open_edit_dialog)
+        footer.addWidget(edit_btn)
+
+        del_btn = QPushButton("Delete / Deactivate")
+        del_btn.setProperty("class", "DangerBtn")
+        del_btn.clicked.connect(self.delete_selected)
+        footer.addWidget(del_btn)
+
         self.total_bal_lbl = QLabel("Total Net Liquid Balance: ₹0.00")
-        self.total_bal_lbl.setStyleSheet("font-size: 16px; font-weight: 700; color: #38bdf8;")
+        self.total_bal_lbl.setStyleSheet("font-size: 16px; font-weight: 700; color: #38bdf8; padding-left: 15px;")
         footer.addWidget(self.total_bal_lbl)
         footer.addStretch()
 
@@ -222,7 +257,9 @@ class AccountsView(QWidget):
 
         for row, acc in enumerate(accounts):
             total_paise += acc.current_balance_paise
-            self.table.setItem(row, 0, QTableWidgetItem(str(acc.id)))
+            id_item = QTableWidgetItem(str(acc.id))
+            id_item.setData(Qt.UserRole, acc.id)
+            self.table.setItem(row, 0, id_item)
             self.table.setItem(row, 1, QTableWidgetItem(acc.name))
             self.table.setItem(row, 2, QTableWidgetItem(acc.account_type))
             self.table.setItem(row, 3, QTableWidgetItem(acc.institution_name or "-"))
@@ -241,6 +278,40 @@ class AccountsView(QWidget):
         dlg = AccountCreateDialog(parent=self)
         if dlg.exec():
             self.load_accounts()
+
+    def open_edit_dialog(self):
+        curr_row = self.table.currentRow()
+        if curr_row < 0:
+            QMessageBox.information(self, "Selection", "Please select an account to edit.")
+            return
+
+        acc_id = self.table.item(curr_row, 0).data(Qt.UserRole)
+        acc = AccountService.get_account_by_id(acc_id)
+        if not acc:
+            QMessageBox.warning(self, "Not Found", "Selected account could not be loaded.")
+            return
+
+        dlg = AccountCreateDialog(account=acc, parent=self)
+        if dlg.exec():
+            self.load_accounts()
+
+    def delete_selected(self):
+        curr_row = self.table.currentRow()
+        if curr_row < 0:
+            QMessageBox.information(self, "Selection", "Please select an account to deactivate.")
+            return
+
+        acc_id = self.table.item(curr_row, 0).data(Qt.UserRole)
+        reply = QMessageBox.question(
+            self, "Confirm Deactivation", "Are you sure you want to deactivate this account? Historical transactions will remain preserved.",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+        if reply == QMessageBox.Yes:
+            ok, msg = AccountService.delete_account(acc_id)
+            if ok:
+                self.load_accounts()
+            else:
+                QMessageBox.critical(self, "Error", msg)
 
     def open_transfer_dialog(self):
         dlg = TransferDialog(parent=self)

@@ -489,19 +489,44 @@ class MainWindow(QMainWindow):
         current_kind = getattr(current_page, "expense_kind", ExpenseKind.DAILY.value)
         dlg = QuickExpenseDialog(expense_kind=current_kind, parent=self)
         if dlg.exec():
-            if hasattr(current_page, "load_expenses"):
-                current_page.load_expenses()
-            elif hasattr(current_page, "refresh"):
+            # Refresh current active page
+            if hasattr(current_page, "refresh"):
                 current_page.refresh()
+            elif hasattr(current_page, "load_data"):
+                current_page.load_data()
+            elif hasattr(current_page, "load_expenses"):
+                current_page.load_expenses()
+            elif hasattr(current_page, "load_ledger"):
+                current_page.load_ledger()
+
+            # Automatically refresh key analytics & dashboard views
             if hasattr(self, "dashboard_view") and hasattr(self.dashboard_view, "refresh"):
                 self.dashboard_view.refresh()
+            if hasattr(self, "heatmap_view") and hasattr(self.heatmap_view, "refresh"):
+                self.heatmap_view.refresh()
+            if hasattr(self, "net_worth_view") and hasattr(self.net_worth_view, "refresh"):
+                self.net_worth_view.refresh()
 
     def switch_page(self, idx: int):
         self.stack.setCurrentIndex(idx)
-        if idx == 0 and hasattr(self, "dashboard_view") and hasattr(self.dashboard_view, "refresh"):
-            self.dashboard_view.refresh()
-        elif idx == 6 and hasattr(self, "net_worth_view") and hasattr(self.net_worth_view, "refresh"):
-            self.net_worth_view.refresh()
+        page = self.stack.widget(idx)
+        if hasattr(page, "refresh"):
+            page.refresh()
+        elif hasattr(page, "load_data"):
+            page.load_data()
+        elif hasattr(page, "load_expenses"):
+            page.load_expenses()
+        elif hasattr(page, "load_income"):
+            page.load_income()
+        elif hasattr(page, "load_accounts"):
+            page.load_accounts()
+        elif hasattr(page, "load_ledger"):
+            page.load_ledger()
+        elif hasattr(page, "load_users"):
+            page.load_users()
+        elif hasattr(page, "load_month_data"):
+            page.load_month_data()
+
         titles = [
             "Dashboard", "Daily Expenses", "Other Expenses", "Income Management",
             "Accounts & Cards", "General Ledger", "Net Worth Tracker",

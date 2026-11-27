@@ -18,11 +18,19 @@ from config.constants import RecurringFrequency
 from ui.table_helper import configure_fintech_table, SUBSCRIPTION_WIDTHS
 
 class AddSubscriptionDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, subscription=None, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Add Subscription / Recurring Payment")
+        self.subscription = subscription
+        self.is_edit = subscription is not None
+        self.setWindowTitle("Edit Subscription" if self.is_edit else "Add Subscription / Recurring Payment")
         self.setFixedSize(420, 400)
         self.init_ui()
+        if self.is_edit:
+            self.name_input.setText(self.subscription.get("title", ""))
+            self.amt_input.setText(f"{self.subscription.get('amount_paise', 0) / 100:.2f}")
+            idx = self.freq_combo.findText(self.subscription.get("frequency", ""))
+            if idx >= 0:
+                self.freq_combo.setCurrentIndex(idx)
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -87,6 +95,23 @@ class AddSubscriptionDialog(QDialog):
         next_due = date(qdate.year(), qdate.month(), qdate.day())
         user_id = UserService.get_all_users()[0].id
 
+        if self.is_edit:
+            ok, msg = SubscriptionService.update_subscription(
+                sub_id=self.subscription["id"],
+                title=title,
+                amount_paise=amt_paise,
+                frequency=freq,
+                start_date=date.today(),
+                account_id=acc_id,
+                member_id=user_id,
+                category_id=self.subscription.get("category_id", 1)
+            )
+            if ok:
+                self.accept()
+            else:
+                QMessageBox.critical(self, "Error", msg)
+            return
+
         ok, msg = SubscriptionService.add_subscription(
             title=title,
             amount_paise=amt_paise,
@@ -137,10 +162,11 @@ class SubscriptionView(QWidget):
         self.table.setHorizontalHeaderLabels(headers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.doubleClicked.connect(self.open_edit_dialog)
         configure_fintech_table(self.table, stretch_col=0, col_widths=SUBSCRIPTION_WIDTHS)
         root.addWidget(self.table)
 
-        # Footer Metrics
+        # Footer Metrics & Actions
         footer = QHBoxLayout()
         self.monthly_burn_lbl = QLabel("Monthly Burn: ₹0.00")
         self.monthly_burn_lbl.setStyleSheet("font-size: 15px; font-weight: 700; color: #f59e0b;")
@@ -151,6 +177,16 @@ class SubscriptionView(QWidget):
         footer.addWidget(self.annual_burn_lbl)
 
         footer.addStretch()
+
+        self.edit_btn = QPushButton("Edit Selected")
+        self.edit_btn.clicked.connect(self.open_edit_dialog)
+        footer.addWidget(self.edit_btn)
+
+        self.del_btn = QPushButton("Delete Selected")
+        self.del_btn.setStyleSheet("color: #ef4444; border: 1px solid #ef4444; padding: 6px 14px; border-radius: 6px;")
+        self.del_btn.clicked.connect(self.delete_selected)
+        footer.addWidget(self.del_btn)
+
         refresh_btn = QPushButton("Refresh")
         refresh_btn.clicked.connect(self.load_data)
         footer.addWidget(refresh_btn)
@@ -164,7 +200,9 @@ class SubscriptionView(QWidget):
         total_annual = sum(s["annual_paise"] for s in subs)
 
         for row, s in enumerate(subs):
-            self.table.setItem(row, 0, QTableWidgetItem(s["title"]))
+            title_item = QTableWidgetItem(s["title"])
+            title_item.setData(Qt.UserRole, s)
+            self.table.setItem(row, 0, title_item)
             self.table.setItem(row, 1, QTableWidgetItem(s["frequency"]))
             self.table.setItem(row, 2, QTableWidgetItem(format_inr(s["amount_paise"])))
             self.table.setItem(row, 3, QTableWidgetItem(format_inr(s["monthly_paise"])))
@@ -179,3 +217,35 @@ class SubscriptionView(QWidget):
         dlg = AddSubscriptionDialog(parent=self)
         if dlg.exec():
             self.load_data()
+
+    def open_edit_dialog(self):
+        curr_row = self.table.currentRow()
+        if curr_row < 0:
+            QMessageBox.information(self, "Selection", "Please select a subscription to edit.")
+            return
+        item = self.table.item(curr_row, 0)
+        s = item.data(Qt.UserRole)
+        dlg = AddSubscriptionDialog(subscription=s, parent=self)
+        if dlg.exec():
+            self.load_data()
+
+    def delete_selected(self):
+        curr_row = self.table.currentRow()
+        if curr_row < 0:
+            QMessageBox.information(self, "Selection", "Please select a subscription to delete.")
+            return
+        item = self.table.item(curr_row, 0)
+        s = item.data(Qt.UserRole)
+        confirm = QMessageBox.question(
+            self,
+            "Confirm Delete",
+            f"Are you sure you want to delete subscription '{s['title']}'?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if confirm == QMessageBox.Yes:
+            ok, msg = SubscriptionService.delete_subscription(s["id"])
+            if ok:
+                QMessageBox.information(self, "Success", "Subscription deleted successfully.")
+                self.load_data()
+            else:
+                QMessageBox.critical(self, "Error", msg)

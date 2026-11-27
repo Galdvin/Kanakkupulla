@@ -54,9 +54,16 @@ class GeneralLedgerView(QWidget):
         filter_layout = QHBoxLayout(filter_card)
         filter_layout.setContentsMargins(12, 10, 12, 10)
 
-        filter_layout.addWidget(QLabel("Account Filter:"))
+        filter_layout.addWidget(QLabel("View Mode:"))
+        self.view_mode_combo = QComboBox()
+        self.view_mode_combo.addItem("🏦 Bank Passbook Statement (Debits = Expenses, Credits = Income)", "PASSBOOK")
+        self.view_mode_combo.addItem("⚖ Double-Entry Journal (Accounting Books)", "JOURNAL")
+        self.view_mode_combo.currentIndexChanged.connect(self.load_ledger)
+        filter_layout.addWidget(self.view_mode_combo)
+
+        filter_layout.addWidget(QLabel("Account:"))
         self.acc_combo = QComboBox()
-        self.acc_combo.addItem("All Accounts (Full General Ledger)", None)
+        self.acc_combo.addItem("All Accounts", None)
         for acc in AccountService.get_all_accounts():
             self.acc_combo.addItem(f"{acc.name} ({acc.account_type})", acc.id)
         self.acc_combo.currentIndexChanged.connect(self.load_ledger)
@@ -64,64 +71,140 @@ class GeneralLedgerView(QWidget):
 
         filter_layout.addStretch()
 
-        self.debits_lbl = QLabel("Debits: ₹0.00")
-        self.debits_lbl.setStyleSheet("font-weight: 700; color: #10b981; font-size: 14px;")
-        filter_layout.addWidget(self.debits_lbl)
+        self.metric1_lbl = QLabel("Expenses: ₹0.00")
+        self.metric1_lbl.setStyleSheet("font-weight: 700; color: #fb7185; font-size: 14px;")
+        filter_layout.addWidget(self.metric1_lbl)
 
-        self.credits_lbl = QLabel("Credits: ₹0.00")
-        self.credits_lbl.setStyleSheet("font-weight: 700; color: #ef4444; font-size: 14px; padding-left: 15px;")
-        filter_layout.addWidget(self.credits_lbl)
+        self.metric2_lbl = QLabel("Income: ₹0.00")
+        self.metric2_lbl.setStyleSheet("font-weight: 700; color: #10b981; font-size: 14px; padding-left: 15px;")
+        filter_layout.addWidget(self.metric2_lbl)
 
-        self.balance_status_lbl = QLabel("BALANCED ✓")
-        self.balance_status_lbl.setStyleSheet("font-weight: 800; color: #14b8a6; padding-left: 20px;")
-        filter_layout.addWidget(self.balance_status_lbl)
+        self.metric3_lbl = QLabel("Net: ₹0.00")
+        self.metric3_lbl.setStyleSheet("font-weight: 800; color: #38bdf8; padding-left: 20px;")
+        filter_layout.addWidget(self.metric3_lbl)
 
         root.addWidget(filter_card)
 
-        # Journal Table
+        # Informational Guidance Banner
+        self.info_card = QFrame()
+        self.info_card.setStyleSheet("background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 6px 12px;")
+        info_layout = QHBoxLayout(self.info_card)
+        info_layout.setContentsMargins(10, 6, 10, 6)
+        self.info_lbl = QLabel()
+        self.info_lbl.setStyleSheet("color: #94a3b8; font-size: 12px;")
+        info_layout.addWidget(self.info_lbl)
+        root.addWidget(self.info_card)
+
+        # Journal / Statement Table
         self.table = QTableWidget()
-        headers = ["Entry ID", "Txn ID", "Date", "Account", "Description", "Debit (₹)", "Credit (₹)"]
-        self.table.setColumnCount(len(headers))
-        self.table.setHorizontalHeaderLabels(headers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
-        configure_fintech_table(self.table, stretch_col=4, col_widths=LEDGER_WIDTHS)
         root.addWidget(self.table)
 
     def load_ledger(self):
         acc_id = self.acc_combo.currentData()
-        entries, count, summary = AccountingEngineService.get_general_ledger_entries(account_id=acc_id)
+        mode = self.view_mode_combo.currentData()
 
-        self.table.setRowCount(len(entries))
-        for row, e in enumerate(entries):
-            self.table.setItem(row, 0, QTableWidgetItem(str(e.id)))
-            self.table.setItem(row, 1, QTableWidgetItem(str(e.transaction_id)))
-            self.table.setItem(row, 2, QTableWidgetItem(format_date(e.entry_date)))
-            self.table.setItem(row, 3, QTableWidgetItem(e.account.name if e.account else "-"))
-            self.table.setItem(row, 4, QTableWidgetItem(e.description or "-"))
+        if mode == "PASSBOOK":
+            # 1. Retail Bank Passbook Format (Expenses = Debits, Income = Credits)
+            headers = ["Txn ID", "Date", "Account", "Description", "Category / Head", "Debit / Money Out (₹)", "Credit / Money In (₹)"]
+            self.table.setColumnCount(len(headers))
+            self.table.setHorizontalHeaderLabels(headers)
+            configure_fintech_table(self.table, stretch_col=3, col_widths={
+                0: 70, 1: 100, 2: 170, 3: 200, 4: 150, 5: 140, 6: 140
+            })
 
-            # Debit column
-            if e.entry_type == "DEBIT":
-                d_item = QTableWidgetItem(format_inr(e.amount_paise))
-                d_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                d_item.setForeground(QColor("#10b981"))
-                self.table.setItem(row, 5, d_item)
-                self.table.setItem(row, 6, QTableWidgetItem("-"))
-            else: # CREDIT
-                self.table.setItem(row, 5, QTableWidgetItem("-"))
-                c_item = QTableWidgetItem(format_inr(e.amount_paise))
-                c_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                c_item.setForeground(QColor("#fb7185"))
-                self.table.setItem(row, 6, c_item)
+            txns, count, summary = AccountingEngineService.get_bank_passbook_entries(account_id=acc_id)
+            self.table.setRowCount(len(txns))
 
-        self.debits_lbl.setText(f"Debits: {format_inr(summary['total_debits'])}")
-        self.credits_lbl.setText(f"Credits: {format_inr(summary['total_credits'])}")
-        if summary["is_balanced"]:
-            self.balance_status_lbl.setText("BALANCED ✓")
-            self.balance_status_lbl.setStyleSheet("font-weight: 800; color: #14b8a6; padding-left: 20px;")
+            for row, t in enumerate(txns):
+                self.table.setItem(row, 0, QTableWidgetItem(str(t.id)))
+                self.table.setItem(row, 1, QTableWidgetItem(format_date(t.transaction_date)))
+                self.table.setItem(row, 2, QTableWidgetItem(t.account.name if t.account else "-"))
+                self.table.setItem(row, 3, QTableWidgetItem(t.title or "-"))
+                cat_name = t.category.name if t.category else (t.expense_kind or ("Income" if t.transaction_type == "Income" else "General"))
+                self.table.setItem(row, 4, QTableWidgetItem(cat_name))
+
+                if t.transaction_type == "Income":
+                    self.table.setItem(row, 5, QTableWidgetItem("-"))
+                    c_item = QTableWidgetItem(format_inr(t.amount_paise))
+                    c_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    c_item.setForeground(QColor("#10b981"))
+                    self.table.setItem(row, 6, c_item)
+                else: # Expense / Payment
+                    d_item = QTableWidgetItem(format_inr(t.amount_paise))
+                    d_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    d_item.setForeground(QColor("#fb7185"))
+                    self.table.setItem(row, 5, d_item)
+                    self.table.setItem(row, 6, QTableWidgetItem("-"))
+
+            self.metric1_lbl.setText(f"Expenses (Debited): {format_inr(summary['total_debits'])}")
+            self.metric1_lbl.setStyleSheet("font-weight: 700; color: #fb7185; font-size: 14px;")
+            self.metric2_lbl.setText(f"Income (Credited): {format_inr(summary['total_credits'])}")
+            self.metric2_lbl.setStyleSheet("font-weight: 700; color: #10b981; font-size: 14px; padding-left: 15px;")
+            net = summary["net_inflow"]
+            net_prefix = "+" if net >= 0 else ""
+            self.metric3_lbl.setText(f"Net Savings: {net_prefix}{format_inr(net)}")
+            self.metric3_lbl.setStyleSheet(f"font-weight: 800; color: {'#38bdf8' if net >= 0 else '#ef4444'}; padding-left: 20px;")
+            self.info_lbl.setText("💡 Bank Passbook View: Money spent (Petrol ₹220, Groceries ₹320) is recorded as Debits (Money Out). Only income receipts (Salary ₹50,000) are recorded as Credits (Money In).")
+
         else:
-            self.balance_status_lbl.setText("UNBALANCED ✗")
-            self.balance_status_lbl.setStyleSheet("font-weight: 800; color: #ef4444; padding-left: 20px;")
+            # 2. Formal Double-Entry Journal Mode
+            headers = ["Entry ID", "Txn ID", "Date", "Ledger Account", "Description", "Debit (₹)", "Credit (₹)"]
+            self.table.setColumnCount(len(headers))
+            self.table.setHorizontalHeaderLabels(headers)
+            configure_fintech_table(self.table, stretch_col=4, col_widths=LEDGER_WIDTHS)
+
+            entries, count, summary = AccountingEngineService.get_general_ledger_entries(account_id=acc_id)
+            self.table.setRowCount(len(entries))
+
+            for row, e in enumerate(entries):
+                self.table.setItem(row, 0, QTableWidgetItem(str(e.id)))
+                self.table.setItem(row, 1, QTableWidgetItem(str(e.transaction_id)))
+                self.table.setItem(row, 2, QTableWidgetItem(format_date(e.entry_date)))
+
+                # Meaningful double-entry account distinction
+                desc = e.description or ""
+                if e.entry_type == "CREDIT" and desc.startswith("Paid for:"):
+                    acc_display = f"{e.account.name} (Asset Outflow)" if e.account else "Cash/Bank Account"
+                elif e.entry_type == "DEBIT" and desc.startswith("Expense Category:"):
+                    cat_name = e.transaction.category.name if (e.transaction and e.transaction.category) else (e.transaction.title if e.transaction else "Expense")
+                    acc_display = f"Expense: {cat_name} (Expense Incurred)"
+                elif e.entry_type == "DEBIT" and desc.startswith("Received Income:"):
+                    acc_display = f"{e.account.name} (Asset Inflow)" if e.account else "Bank Account"
+                elif e.entry_type == "CREDIT" and desc.startswith("Revenue Credit:"):
+                    acc_display = f"Revenue: {e.transaction.title if e.transaction else 'Income'} (Revenue Earned)"
+                else:
+                    acc_display = e.account.name if e.account else "-"
+
+                self.table.setItem(row, 3, QTableWidgetItem(acc_display))
+                self.table.setItem(row, 4, QTableWidgetItem(desc or "-"))
+
+                # Debit column
+                if e.entry_type == "DEBIT":
+                    d_item = QTableWidgetItem(format_inr(e.amount_paise))
+                    d_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    d_item.setForeground(QColor("#10b981"))
+                    self.table.setItem(row, 5, d_item)
+                    self.table.setItem(row, 6, QTableWidgetItem("-"))
+                else: # CREDIT
+                    self.table.setItem(row, 5, QTableWidgetItem("-"))
+                    c_item = QTableWidgetItem(format_inr(e.amount_paise))
+                    c_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                    c_item.setForeground(QColor("#fb7185"))
+                    self.table.setItem(row, 6, c_item)
+
+            self.metric1_lbl.setText(f"Total Debits: {format_inr(summary['total_debits'])}")
+            self.metric1_lbl.setStyleSheet("font-weight: 700; color: #10b981; font-size: 14px;")
+            self.metric2_lbl.setText(f"Total Credits: {format_inr(summary['total_credits'])}")
+            self.metric2_lbl.setStyleSheet("font-weight: 700; color: #ef4444; font-size: 14px; padding-left: 15px;")
+            if summary["is_balanced"]:
+                self.metric3_lbl.setText("BALANCED ✓")
+                self.metric3_lbl.setStyleSheet("font-weight: 800; color: #14b8a6; padding-left: 20px;")
+            else:
+                self.metric3_lbl.setText("UNBALANCED ✗")
+                self.metric3_lbl.setStyleSheet("font-weight: 800; color: #ef4444; padding-left: 20px;")
+            self.info_lbl.setText("💡 Double-Entry Bookkeeping Rule: In formal accounting books, cash asset accounts credit when money goes out (Credit ₹220) and debit when money enters (Debit ₹50,000) to balance with category nominal accounts.")
 
     def run_balance_verification(self):
         result = AccountingEngineService.verify_ledger_integrity()

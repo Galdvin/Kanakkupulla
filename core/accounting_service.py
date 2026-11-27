@@ -197,6 +197,53 @@ class AccountService:
         )
         return ok, msg
 
+    @staticmethod
+    def update_account(
+        account_id: int,
+        name: str,
+        account_type: str,
+        institution_name: Optional[str] = None,
+        notes: Optional[str] = None
+    ) -> Tuple[bool, str]:
+        if not AuthService.can_modify_transactions():
+            return False, "Unauthorized action"
+
+        db = SessionLocal()
+        try:
+            acc = db.query(Account).filter_by(id=account_id).first()
+            if not acc:
+                return False, "Account not found"
+            acc.name = name.strip()
+            acc.account_type = account_type
+            acc.institution_name = institution_name.strip() if institution_name else None
+            acc.notes = notes.strip() if notes else None
+            db.commit()
+            return True, "Account updated successfully"
+        except Exception as e:
+            db.rollback()
+            return False, str(e)
+        finally:
+            db.close()
+
+    @staticmethod
+    def delete_account(account_id: int) -> Tuple[bool, str]:
+        if not AuthService.can_modify_transactions():
+            return False, "Unauthorized action"
+
+        db = SessionLocal()
+        try:
+            acc = db.query(Account).filter_by(id=account_id).first()
+            if not acc:
+                return False, "Account not found"
+            acc.is_active = False
+            db.commit()
+            return True, "Account deactivated successfully"
+        except Exception as e:
+            db.rollback()
+            return False, str(e)
+        finally:
+            db.close()
+
 
 # Module export aliases
 AccountingService = AccountService

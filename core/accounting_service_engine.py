@@ -60,6 +60,56 @@ class AccountingEngineService:
             db.close()
 
     @staticmethod
+    def get_bank_passbook_entries(
+        account_id: Optional[int] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        limit: int = 150,
+        offset: int = 0
+    ) -> Tuple[List[FinancialTransaction], int, Dict[str, Any]]:
+        """
+        Retrieves user-friendly retail bank passbook / statement entries.
+        In consumer banking:
+        - Outflows / Expenses = DEBITS (-)
+        - Inflows / Salary / Deposits = CREDITS (+)
+        """
+        db = SessionLocal()
+        try:
+            q = db.query(FinancialTransaction).filter(FinancialTransaction.is_deleted == False)
+            if account_id:
+                q = q.filter(FinancialTransaction.account_id == account_id)
+            if start_date:
+                q = q.filter(FinancialTransaction.transaction_date >= start_date)
+            if end_date:
+                q = q.filter(FinancialTransaction.transaction_date <= end_date)
+
+            total_count = q.count()
+            all_txns = q.all()
+
+            total_debits = 0   # Expenses / Outflows
+            total_credits = 0  # Income / Deposits
+
+            for t in all_txns:
+                if t.transaction_type == TransactionType.INCOME.value:
+                    total_credits += t.amount_paise
+                elif t.transaction_type in (TransactionType.EXPENSE.value, TransactionType.CREDIT_PAYMENT.value):
+                    total_debits += t.amount_paise
+
+            paginated = q.order_by(FinancialTransaction.transaction_date.desc(), FinancialTransaction.id.desc()).offset(offset).limit(limit).all()
+            for t in paginated:
+                _ = t.account.name if t.account else None
+                _ = t.category.name if t.category else None
+                db.expunge(t)
+
+            return paginated, total_count, {
+                "total_debits": total_debits,
+                "total_credits": total_credits,
+                "net_inflow": total_credits - total_debits
+            }
+        finally:
+            db.close()
+
+    @staticmethod
     def verify_ledger_integrity() -> Dict[str, Any]:
         """
         Runs complete consistency validation across all posted journals in the database.
